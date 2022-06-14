@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+commands=$(ls -1 ~/bin | grep -v find-command)
+
+PS3="Select one custom command: "
+select command in $commands; do
+
+  ~/bin/$command
+  break
+
+done
+

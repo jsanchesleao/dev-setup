@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+
+PS3="Select an SSH Profile: "
+select profile in $(ls ~/ssh_profiles); do
+
+  [ -z $profile ] && break
+
+  PROFILE_FILES=~/ssh_profiles/$profile/*
+
+  cp -r $PROFILE_FILES ~/.ssh/
+  echo "Changed to SSH profile $profile"
+  break
+
+done
+
+

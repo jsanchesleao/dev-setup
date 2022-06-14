@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 PROJECTS_DIR=~/projects
+STUDIES_DIR=~/study
+PERSONAL_DIR=~/personal
 
-RESULT=$(find $PROJECTS_DIR -maxdepth 1 -type d | fzf)
+RESULT=$(find $PROJECTS_DIR $STUDIES_DIR $PERSONAL_DIR -maxdepth 1 -type d | fzf)
 
 if [ "$RESULT" == "" ]; then
   echo "Cancelled"
   exit 0
 fi
 
-SESSION_NAME="${RESULT//$PROJECTS_DIR\//}"
+SESSION_NAME=$(basename $RESULT)
 
 #creates session if needed
 tmux has-session -t $SESSION_NAME 2>/dev/null
-if [ $? != 0 ]; then
-  tmux new -d -s $SESSION_NAME -c $RESULT
-fi
+[ -z $? ] || tmux new -d -s $SESSION_NAME -c $RESULT
 
 if [ "$TMUX" == "" ]; then
   tmux a -t $SESSION_NAME
