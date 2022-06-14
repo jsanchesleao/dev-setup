@@ -41,6 +41,7 @@ Plug 'tpope/vim-fugitive'
 Plug 'nvim-lua/plenary.nvim'
 Plug('nvim-treesitter/nvim-treesitter')
 Plug 'nvim-telescope/telescope.nvim'
+Plug 'ThePrimeagen/harpoon'
 
 vim.call('plug#end')
 
@@ -86,6 +87,25 @@ keymap('n', '<leader>t', ':tabnew<CR>:terminal<CR>a', noremap)
 keymap('v', '<leader>f',  '<Plug>(coc-format-selected)', {})
 
 keymap('t', '<Esc>', '<C-\\><C-n>', noremap)
+
+--Harpoon Keybindings
+keymap('n', '<leader>ha', ':lua require("harpoon.mark").add_file()<CR>', noremap)
+keymap('n', '<leader>hh', ':lua require("harpoon.ui").toggle_quick_menu()<CR>', noremap)
+keymap('n', '<leader>hn', ':lua require("harpoon.ui").nav_next()<CR>', noremap)
+keymap('n', '<leader>hp', ':lua require("harpoon.ui").nav_prev()<CR>', noremap)
+
+--Split Keybindings
+keymap('n', 'ss', ':split<CR><C-w>w', {})
+keymap('n', 'sv', ':vsplit<CR><C-w>w', {})
+keymap('n', 'sh', '<C-w>h', {})
+keymap('n', 'sj', '<C-w>j', {})
+keymap('n', 'sk', '<C-w>k', {})
+keymap('n', 'sl', '<C-w>l', {})
+keymap('n', '<C-w><left>', '<C-w><', {})
+keymap('n', '<C-w><right>', '<C-w>>', {})
+keymap('n', '<C-w><up>', '<C-w>+', {})
+keymap('n', '<C-w><down>', '<C-w>-', {})
+
 
 -- VIMScript Config
 cmd [[

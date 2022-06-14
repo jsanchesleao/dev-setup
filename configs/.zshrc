@@ -21,3 +21,4 @@ source /Users/sanchesleao/powerlevel10k/powerlevel10k.zsh-theme
 #KEYBINDINGS
 
 bindkey -s '^f' '~/bin/find-to-tmux^M'
+bindkey -s '^k' '~/bin/find-command^M'
