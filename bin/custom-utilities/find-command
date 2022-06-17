@@ -1,0 +1,22 @@
+#!/usr/bin/env sh
+
+commands=$(ls -1 ~/bin | grep -v custom-utilities)
+
+PROMPT="Select one custom command: "
+
+if [ -e ~/bin/custom-utilities/tmenu ]; then
+  echo $PROMPT
+  CMD=$(ls -1 ~/bin | grep -v custom-utilities | xargs ~/bin/custom-utilities/tmenu)
+  [ -z $CMD ] || ~/bin/$CMD
+  exit 0
+fi
+
+
+PS3=$PROMPT
+select command in $commands; do
+
+  ~/bin/$command
+  break
+
+done
+
