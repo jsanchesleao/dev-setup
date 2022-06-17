@@ -7,7 +7,10 @@ echo "Restoring zsh config"
 cp ./configs/.zshrc ~/.zshrc 
 
 echo "Restoring nvim config"
-cp -r .configs/nvim ~/.configs
+cp -r ./configs/nvim ~/.configs
+
+echo "Restoring custom commands"
+cp -r ./bin ~
 
 echo -e "\nDone"
 

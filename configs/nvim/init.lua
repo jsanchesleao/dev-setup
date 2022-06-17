@@ -62,6 +62,8 @@ require('telescope').setup{ defaults = { file_ignore_patterns = {"node_modules"}
 
 -- Keybindings
 keymap('i', 'kj',  '<Esc>', {})
+keymap('n', '<C-e>', '4<C-e>', noremap)
+keymap('n', '<C-y>', '4<C-y>', noremap)
 
 keymap('n', ';',  ':', noremap)
 keymap('n', '<C-p>',  ':Telescope find_files<CR>', noremap)
