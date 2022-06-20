@@ -6,7 +6,7 @@ PROMPT="Select one custom command: "
 
 if [ -e ~/bin/custom-utilities/tmenu ]; then
   echo $PROMPT
-  CMD=$(ls -1 ~/bin | grep -v custom-utilities | xargs ~/bin/custom-utilities/tmenu)
+  CMD=$(ls -1 ~/bin | grep -v custom-utilities | fzf)
   [ -z $CMD ] || ~/bin/$CMD
   exit 0
 fi

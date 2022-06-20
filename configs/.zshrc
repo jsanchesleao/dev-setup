@@ -21,4 +21,11 @@ source /Users/sanchesleao/powerlevel10k/powerlevel10k.zsh-theme
 #KEYBINDINGS
 
 bindkey -s '^f' '~/bin/find-to-tmux^M'
-bindkey -s '^k' '~/bin/custom-utilities/find-command^M'
+bindkey -s '^p' '~/bin/custom-utilities/find-command^M'
+
+alias ccd='CDIR=$(find . -maxdepth 1 -type d | sort | xargs ~/bin/custom-utilities/tmenu) && cd $CDIR'
+alias r='. ranger'
+alias rocket='python3 ~/personal/rocket.term/bin/rocketterm'
+
+export VISUAL=nvim
+export EDITOR=nvim
