@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+tmux menu \
+  "Split Vertical" v "split -v" \
+  "Split Horizontal" h "split -v"

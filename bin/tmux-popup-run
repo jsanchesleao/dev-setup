@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+if [[ $# -eq 0 ]]; then
+  exit 0
+fi
+
+tmux popup -w 80% -h 80% $@

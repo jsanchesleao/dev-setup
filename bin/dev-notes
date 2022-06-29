@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+  echo "Usage: dev-notes [read|edit] [--inline]"
+  exit 1
+fi
+
+if [ "$1" != "edit" ] && [ "$1" != "read" ]; then
+  echo "Unknow command $1. Should be either read or edit"
+  exit 2
+fi
+
+notesdir="$HOME/.devnotes"
+branch=$(git branch --show-current | sed 's/\//_/g')
+session=$(tmux display-message -p '#S')
+
+if [ -z "$branch" ]; then
+  branch=DEFAULT
+fi
+
+if [ -z "$session" ]; then
+  session=ROOT
+fi
+
+directoryName="$notesdir/$session"
+fileName="$directoryName/$branch.md"
+
+if [ ! -d "$directoryName" ]; then
+  mkdir -p "$directoryName"
+fi
+
+if [ ! -f "$fileName" ]; then
+  echo -e "# $branch\n\n" > "$fileName"
+fi
+
+command="tmux display-popup -w 80% -h 80% -E"
+if [ "$2" == "--inline" ]; then
+  command="bash -c "
+fi
+
+if [ "$1" = "read" ]; then
+  $command "glow $fileName -p"
+else
+  $command "nvim $fileName"
+fi

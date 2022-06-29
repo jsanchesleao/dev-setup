@@ -72,6 +72,14 @@ M.setup = function()
   keymap('n', '<C-w><right>', '<C-w>>', {})
   keymap('n', '<C-w><up>', '<C-w>+', {})
   keymap('n', '<C-w><down>', '<C-w>-', {})
+
+  vim.keymap.set('n', '<C-Space>', function()
+    local command = vim.fn.input('$ '):gsub('"', '\\"')
+    vim.cmd(':silent !~/bin/tmux-popup-run "' .. command .. '"')
+  end)
+
+  keymap('n', '<leader>ne', ':silent !~/bin/dev-notes edit<CR>', {silent = true})
+  keymap('n', '<leader>nr', ':silent !~/bin/dev-notes read<CR>', {silent = true})
 end
 
 return M

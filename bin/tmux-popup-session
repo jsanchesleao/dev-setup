@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+session=$(tmux ls -F '#{session_name}' | fzf)
+tmux popup -w 80% -h80% -E "tmux attach -t $session || tmux new -s $session"

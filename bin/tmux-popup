@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+currentSession=$(tmux display-message -p -F "#{session_name}")
+
+if [ "$currentSession" = "popup" ]; then
+  tmux detach-client
+else
+  tmux popup -w 80% -h 80% -E "tmux attach -t popup || tmux new -s popup"
+fi
