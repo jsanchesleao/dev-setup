@@ -8,6 +8,8 @@ tools and configs for coding
 - [fzf](https://github.com/junegunn/fzf)
 - [neovim](https://neovim.io/)
 - [tmux](https://github.com/tmux/tmux/wiki)
+- [glow](https://github.com/charmbracelet/glow)
+- [bat](https://github.com/sharkdp/bat)
 
 # Configurations
 
