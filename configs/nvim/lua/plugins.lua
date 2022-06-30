@@ -17,8 +17,9 @@ M.setup = function()
   Plug 'neoclide/coc-prettier'
   Plug 'folke/lua-dev.nvim'
 
-  Plug 'preservim/nerdtree'
   Plug 'tpope/vim-surround'
+--  Plug 'kyazdani42/nvim-web-devicons'
+  Plug 'kyazdani42/nvim-tree.lua'
 
   Plug 'ianks/vim-tsx'
   Plug 'sainnhe/everforest'
