@@ -8,6 +8,8 @@ M.setup = function()
   telescope.setup {
     defaults = { file_ignore_patterns = { "node_modules" } },
   }
+  telescope.load_extension('dap')
+  telescope.load_extension('harpoon')
 
 end
 

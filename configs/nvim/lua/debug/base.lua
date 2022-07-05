@@ -14,11 +14,14 @@ M.setup = function()
   }
 
   keymap('n', '<leader>db', ':lua require("dap").toggle_breakpoint()<CR>', {})
+  keymap('n', '<leader>dB', ":lua require'dap'.set_breakpoint(vim.fn.input('Breakpoint condition: '))", {})
   keymap('n', '<leader>dc', ':lua require("dap").continue()<CR>', {})
   keymap('n', '<leader>do', ':lua require("dap").step_over()<CR>', {})
+  keymap('n', '<leader>dO', ':lua require("dap").step_out()<CR>', {})
   keymap('n', '<leader>di', ':lua require("dap").step_into()<CR>', {})
   keymap('n', '<leader>dr', ':lua require("dap").repl_open()<CR>', {})
   keymap('n', '<leader>dt', ':lua require("dapui").toggle()<CR>', {})
+  keymap('n', '<leader>dD', ':lua require("dap").run_last()<CR>', {})
 
 end
 

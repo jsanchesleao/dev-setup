@@ -19,15 +19,17 @@ M.setup = function()
   keymap('n', '<C-e>', '4<C-e>', noremap)
   keymap('n', '<C-y>', '4<C-y>', noremap)
   keymap('n', ';', ':', noremap)
-  keymap('n', 'tt', ':NERDTreeToggle<CR>', { silent = true, noremap = true })
+  keymap('n', '\\', ';', noremap)
+  keymap('n', 'tt', ':NvimTreeToggle<CR>', { silent = true, noremap = true })
   keymap('n', '<Tab>', ':bn<CR>', noremap)
   keymap('n', '<S-Tab>', ':bp<CR>', noremap)
-  keymap('n', '<Leader><Tab>', ':Bw<CR>', noremap)
-  keymap('n', '<Leader><S-Tab>', ':Bw!<CR>', noremap)
+  keymap('n', '<Leader><Tab>', ':bw<CR>', noremap)
+  keymap('n', '<Leader><S-Tab>', ':bw!<CR>', noremap)
   keymap('n', 'K', ':call CocActionAsync(\'doHover\')<CR>', noremap)
   keymap('n', '<Leader>ss', ':source ~/.config/nvim/init.lua<CR>', noremap)
   keymap('n', '<Leader>se', ':tabnew ~/.config/nvim/init.lua<CR>', noremap)
   keymap('n', '<Leader>sm', ':tabnew ~/.config/nvim/lua/custom_commands.lua<CR>', noremap)
+  keymap('n', '<Leader>sc', ':let @"=expand("%")<CR>', noremap)
   keymap('v', '<leader>f', '<Plug>(coc-format-selected)', {})
   keymap('t', '<Esc>', '<C-\\><C-n>', noremap)
   keymap('t', 'kj', '<C-\\><C-n>', noremap)
@@ -42,6 +44,9 @@ M.setup = function()
   keymap('n', '<leader>td', telescope_resp('coc definitions'), noremap)
   keymap('n', '<leader>ti', telescope_resp('coc implementations'), noremap)
   keymap('n', '<leader>ta', telescope_resp('coc code_actions'), noremap)
+  keymap('n', '<leader>tf', telescope_resp('file_browser'), noremap)
+  keymap('n', '<leader>tb', telescope_resp('buffers'), noremap)
+  keymap('n', '<leader>th', telescope_resp('harpoon'), noremap)
   keymap('n', '<C-x>', telescope_resp('command_palette'), noremap)
 
   -- CoC
@@ -68,19 +73,32 @@ M.setup = function()
   -- Split
   keymap('n', 'ss', ':split<CR><C-w>w', {})
   keymap('n', 'sv', ':vsplit<CR><C-w>w', {})
-  keymap('n', '<C-w><left>', '<C-w><', {})
-  keymap('n', '<C-w><right>', '<C-w>>', {})
-  keymap('n', '<C-w><up>', '<C-w>+', {})
-  keymap('n', '<C-w><down>', '<C-w>-', {})
+  keymap('n', '<A-Left>', '<C-w><', {})
+  keymap('n', '<A-Right>', '<C-w>>', {})
+  keymap('n', '<A-Up>', '<C-w>+', {})
+  keymap('n', '<A-Down>', '<C-w>-', {})
+  vim.keymap.set('n', '<leader>v', function()
+    vim.cmd [[
+      :NvimTreeOpen
+      :wincmd l
+      :split
+      :wincmd j
+      :resize 10
+      :terminal
+      :wincmd k
+    ]]
+  end, { silent = true })
 
-  vim.keymap.set('n', '<C-Space>', function()
-    local command = vim.fn.input('$ '):gsub('"', '\\"')
-    vim.cmd(':silent !~/bin/tmux-popup-run "' .. command .. '"')
+  -- Popups
+  -- run on popup
+  vim.keymap.set("n", "<C-Space>", function()
+    local command = vim.fn.input("$ "):gsub('"', '\\"')
+    vim.cmd(":silent !~/bin/tmux-popup-run \"" .. command .. "\"")
   end)
+  -- open branch notes
+  keymap("n", "<leader>nr", ":silent !~/bin/branch-notes read<CR>", { silent = true })
+  keymap("n", "<leader>ne", ":silent !~/bin/branch-notes edit<CR>", { silent = true })
 
-  keymap('n', '<leader>ne', ':silent !~/bin/dev-notes edit<CR>', {silent = true})
-  keymap('n', '<leader>nr', ':silent !~/bin/dev-notes read<CR>', {silent = true})
 end
 
 return M
-

@@ -14,6 +14,8 @@ M.setup = function()
     { "search word", ":lua require('telescope.builtin').live_grep()", 1 },
     { "git files", ":lua require('telescope.builtin').git_files()", 1 },
     { "files", ":lua require('telescope.builtin').find_files()", 1 },
+    { "Copy (selection)", ':normal "+y'},
+    { "Copy Whole File", ':normal mCggVG"+y`C'},
   }
 
   config.Help = { "Help",
@@ -27,6 +29,7 @@ M.setup = function()
 
   config.Vim = { "Vim",
     { "reload vimrc", ":source $MYVIMRC" },
+    { "close hidden buffers", ":up | %bd | e#" },
     { 'check health', ":checkhealth" },
     { "jumps", ":lua require('telescope.builtin').jumplist()" },
     { "commands", ":lua require('telescope.builtin').commands()" },
@@ -50,6 +53,14 @@ M.setup = function()
     { "Autofix Lint", ":CocCommand eslint.executeAutofix"},
     { "Format Document", ":CocCommand editor.action.formatDocument"},
     { "List Commands", ":CocCommand"},
+  }
+
+  config.Debug = { "Debug",
+   { "Commands", ":lua require'telescope'.extensions.dap.commands()"},
+   { "Configurations", ":lua require'telescope'.extensions.dap.configurations()"},
+   { "Breakpoints", ":lua require'telescope'.extensions.dap.list_breakpoints()"},
+   { "Variables", ":lua require'telescope'.extensions.dap.variables()"},
+   { "Frames", ":lua require'telescope'.extensions.dap.frames()"},
   }
 
   for _, value in pairs(config) do
