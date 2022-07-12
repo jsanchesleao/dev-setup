@@ -1,3 +1,4 @@
+
 (setq inhibit-startup-message t)
 (setq visible-bell t) 
 
@@ -89,6 +90,11 @@
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
 
+(setq doom-modeline-height 15)
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height 160)
+(set-face-attribute 'mode-line-active nil :family "Noto Sans" :height 160)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 160)
+
 (use-package doom-themes
   :init (load-theme 'doom-gruvbox t))
 
@@ -146,6 +152,14 @@
   (interactive)
   (find-file "~/.emacs.d/init.el"))
 
+(defun jef/load-tasks-file ()
+  (interactive)
+  (find-file "~/personal/OrgDatabase/Tasks.org"))
+
+(defun jef/load-org-index ()
+  (interactive)
+  (find-file "~/personal/OrgDatabase/Index.org"))
+
 (use-package general
   :config
   (general-create-definer jef/leader-keys
@@ -160,11 +174,17 @@
 
   (jef/leader-keys
    "t" '(:ignore t :which-key "toggles")
-   "tt" '(counsel-load-theme :which-key "choose theme"))
+   "tt" '(counsel-load-theme :which-key "choose theme")
+   "a" '(:ignore t :which-key "agenda")
+   "aa" '(org-agenda :which-key "Open Agenda")
+   "at" '(counsel-org-tag :which-key "Add Tag")
+   "as" '(org-shiftright :which-key "Cycle Labels"))
 
   (jef/emacs-base
    "s" '(:ignore t :which-key "source")
-   "se" '(jef/load-init-el :which-key "Edit init.el")))
+   "se" '(jef/load-init-el :which-key "Edit init.el")
+   "st" '(jef/load-tasks-file :which-key "Edit Tasks.org")
+   "si" '(jef/load-org-index :which-key "Edit Index.org")))
 
 (general-evil-setup)
 (general-imap "k"
@@ -215,6 +235,7 @@
   (auto-fill-mode 0)
   (visual-line-mode 1)
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (setq org-hide-emphasis-markers t)
   (setq evil-auto-indent nil))
 
 (defun jef/org-font-setup ()
@@ -232,6 +253,7 @@
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
     (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
     (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+    (set-face-attribute 'org-date nil   :inherit '(shadow fixed-pitch))
     (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
     (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
     (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
@@ -246,12 +268,28 @@
   (setq org-log-done 'time)
   (setq org-log-into-drawer t)
   (setq org-agenda-files
-	'("~/OrgFiles/tasks.org"
-	  "~/OrgFiles/Birthdays.org"))
+	'("~/personal/OrgDatabase/Tasks.org"
+	  "~/personal/OrgDatabase/Birthdays.org"))
+
   (setq org-todo-keywords
 	'((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d!)")
+	  (sequence "APPOINTMENT(a)" "|" "COMPLETED(c)")
 	  (sequence "BACKLOG(b)" "PLAN(p)" "READY(r)" "ACTIVE(a)" "REVIEW(v)" "WAIT(w@/!)" "|" "COMPLETED(c)" "CANC(k@)")))
 
+  (setq org-refile-targets
+	'(("Archive.org" :maxlevel . 1)
+	  ("Tasks.org" :maxlevel . 1)))
+
+  (advice-add 'org-refile :after 'org-save-all-org-buffers)
+
+  (setq org-tag-alist
+	'((:startgroup)
+					;mutually exclusive tags go here
+	  (:endgroup)
+	  ("home" . ?h)
+	  ("work" . ?w)
+	  ("recurring" . ?r)))
+  
   (setq org-agenda-custom-commands
 	'(("d" "Dashboard"
 	   ((agenda "" ((org-deadline-warning-days 7)))
@@ -262,12 +300,21 @@
 	  ("n" "Next Tasks"
 	   ((todo "NEXT" ((org-agenda-overriding-header "Next Tasks")))))
 
+	  ("A" "Appointments"
+	   ((agenda "APPOINTMENT" ((org-agenda-overriding-header "Appointments")
+				 (org-deadline-warning-days 7)))))
+
 	  ("W" "Work Tasks" tags-todo "+work")
 
 	  ("e" tags-todo "+TODO=\"NEXT\"+Effort<15&Effort>0"
 	   ((org-agenda-overriding-header "Low Effort Tasks")
 	    (org-agenda-max-todos 20)
 	    (org-agenda-files org-agenda-files)))
+
+	  ("g" "German"
+	   ((todo "TODO" ((org-agenda-overriding-header "German Lessons")
+			  (org-agenda-files '("~/personal/OrgDatabase/German/DeutschToGo.org"))))))
+	  
 
 	  ("w" "Workflow Status"
 	   ((todo "WAIT"
@@ -296,6 +343,24 @@
 	    (todo "CANC"
 		  ((org-agenda-overriding-header "Cancelled Projects")
 		   (org-agenda-files org-agenda-files)))))))
+
+  (setq org-capture-templates
+	`(("t" "Tasks / Projects")
+	  ("tt" "Task" entry (file+olp "~/personal/OrgDatabase/Tasks.org" "Inbox") "* TODO %?\n %U\n %a\n %i" :empty-lines 1)
+
+	  ("j" "Journal Entries")
+	  ("jj" "Journal" entry
+	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+	   "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+	   :clock-in :clock-resume
+	   :empty-lines 1)
+	  ("jm" "Meeting" entry
+	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+	   "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+	   :clock-in :clock-resume
+	   :empty-lines 1)
+	  ("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
+	   "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
   
   (jef/org-font-setup))
 
@@ -314,3 +379,12 @@
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . jef/org-mode-visual-fill))
+
+
+; (use-package lsp-mode
+;   :init
+;   (setq lsp-keymap-prefix "C-c l")
+;   :commands lsp)
+; (use-package lsp-ui :commands lsp-ui-mode)
+; (use-package lsp-ivy :commands lsp-ivy-workspace-symbol)
+; (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
