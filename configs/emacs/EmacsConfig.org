@@ -1,4 +1,4 @@
-#+title Emacs Configuration
+#+title: Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
 * Basic UI Configuration
@@ -11,7 +11,7 @@
   (setq inhibit-startup-message t)
   (setq visible-bell t) 
 
-  (setq custom-file "~/.emacs.d/custom.el")
+  (setq custom-file "~/.config/emacs/custom.el")
   (load custom-file)
 
   (scroll-bar-mode -1)   ; Disable visible scrollbar
@@ -40,10 +40,8 @@
   (set-face-attribute 'default nil :font "MesloLGS NF" :height 160)
   (set-face-attribute 'fixed-pitch nil :font "Monaco" :height 160)
   (set-face-attribute 'variable-pitch nil :font "Microsoft Sans Serif" :height 160)
-  (set-face-attribute 'mode-line nil :family "Noto Sans" :height 160)
-  (set-face-attribute 'mode-line-active nil :family "Noto Sans" :height 160)
-  (set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 160)
-
+  (set-face-attribute 'mode-line nil :family "Noto Sans" :height 140)
+  (set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 140)
 #+end_src
 
 * Package Configuration
@@ -259,6 +257,13 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   "ts" '(hydra-text-scale/body :which-key "scale text"))
 #+end_src
 
+** VTerm
+
+#+begin_src emacs-lisp
+(use-package vterm)
+#+end_src
+
+* Development
 ** Projectile
 
 #+begin_src emacs-lisp
@@ -277,12 +282,6 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   :config (counsel-projectile-mode))
 #+end_src
 
-** VTerm
-
-#+begin_src emacs-lisp
-(use-package vterm)
-#+end_src
-
 ** Magit
 
 #+begin_src emacs-lisp
@@ -290,6 +289,69 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   :commands (magit-status magit-get-current-branch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+#+end_src
+
+** Language Servers
+*** LSP Mode
+
+#+begin_src emacs-lisp
+  (defun jef/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
+
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook (lsp-mode . jef/lsp-mode-setup)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :config
+    (set-face-attribute 'lsp-headerline-breadcrumb-path-face nil :inherit 'fixed-pitch)
+    (lsp-enable-which-key-integration t))
+
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom)
+    (lsp-ui-peek-show-directory nil)
+    :config
+    (jef/leader-keys "tr" '(lsp-ui-peek-find-references :which-key "Find References")))
+
+  (use-package lsp-ivy)
+#+end_src
+
+*** Company
+
+#+begin_src emacs-lisp
+  (use-package company
+  :after lsp-mode
+  :hook (lsp-mode . company-mode)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection))
+        (:map lsp-mode-map
+              ("<tab>" . company-indent-or-complete-common))
+  :custom
+  (company-minimum-prefix-length 1)
+  (company-idle-delay 0.0))
+
+  (use-package company-box
+    :hook (company-mode . company-box-mode))
+#+end_src
+
+*** Treemacs
+
+#+begin_src emacs-lisp
+  (use-package lsp-treemacs
+    :after lsp)
+#+end_src
+
+*** Typescript
+
+#+begin_src emacs-lisp
+  (use-package typescript-mode
+    :mode "\\.ts\\'"
+    :hook (typescript-mode . lsp-deferred)
+    :config
+    (setq typescript-indent-level 2))
 #+end_src
 
 * Org Mode
@@ -477,4 +539,14 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . jef/org-mode-visual-fill))
+#+end_src
+
+** Org Tempo
+
+#+begin_src emacs-lisp
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
 #+end_src
