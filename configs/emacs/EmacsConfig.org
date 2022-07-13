@@ -1,54 +1,78 @@
-(defvar jef/default-font-size 160)
+#+title Emacs Configuration
+#+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
-(setq inhibit-startup-message t)
-(setq visible-bell t) 
+* Basic UI Configuration
+** Ui Elements
 
-(setq custom-file "~/.emacs.d/custom.el")
-(load custom-file)
+#+begin_src emacs-lisp 
 
-(scroll-bar-mode -1)   ; Disable visible scrollbar
-(tool-bar-mode -1)     ; Disable the toolbar
-(menu-bar-mode -1)     ; Disable the menu bar
-(tooltip-mode -1)      ; Disable tooltips
-(set-fringe-mode 10)   ; Give some breathing room
+  (defvar jef/default-font-size 160)
 
-(column-number-mode)
-(global-display-line-numbers-mode t)
-(setq display-line-numbers 'relative)
+  (setq inhibit-startup-message t)
+  (setq visible-bell t) 
 
-;; Disable line numbers for some modes
-(dolist (mode '(org-mode-hook
-                term-mode-hook
-                shell-mode-hook
-                eshell-mode-hook))
-  (add-hook mode (lambda () (display-line-numbers-mode 0))))
+  (setq custom-file "~/.emacs.d/custom.el")
+  (load custom-file)
 
-(set-face-attribute 'default nil :font "MesloLGS NF" :height 160)
-(set-face-attribute 'fixed-pitch nil :font "Monaco" :height 160)
-(set-face-attribute 'variable-pitch nil :font "Microsoft Sans Serif" :height 160)
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 160)
-(set-face-attribute 'mode-line-active nil :family "Noto Sans" :height 160)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 160)
+  (scroll-bar-mode -1)   ; Disable visible scrollbar
+  (tool-bar-mode -1)     ; Disable the toolbar
+  (menu-bar-mode -1)     ; Disable the menu bar
+  (tooltip-mode -1)      ; Disable tooltips
+  (set-fringe-mode 10)   ; Give some breathing room
 
-(require 'package)
+  (column-number-mode)
+  (global-display-line-numbers-mode t)
+  (setq display-line-numbers 'relative)
 
-(setq package-archives '(("melpa" . "https://melpa.org/packages/")
-                         ("org" . "https://orgmode.org/elpa/")
-                         ("elpa" . "https://elpa.gnu.org/packages/")
-                         ("gnu-devel" . "https://elpa.gnu.org/devel/")))
+  ;; Disable line numbers for some modes
+  (dolist (mode '(org-mode-hook
+                  term-mode-hook
+                  shell-mode-hook
+                  eshell-mode-hook))
+    (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-(package-initialize)
+#+end_src
 
-(unless package-archive-contents
-  (package-refresh-contents))
+** Font Configuration
 
-;; Initialize use-package on non-Linux platforms
-(unless (package-installed-p 'use-package)
-  (package-install 'use-package))
+#+begin_src emacs-lisp 
 
-(require 'use-package)
-(setq use-package-always-ensure t)
+  (set-face-attribute 'default nil :font "MesloLGS NF" :height 160)
+  (set-face-attribute 'fixed-pitch nil :font "Monaco" :height 160)
+  (set-face-attribute 'variable-pitch nil :font "Microsoft Sans Serif" :height 160)
+  (set-face-attribute 'mode-line nil :family "Noto Sans" :height 160)
+  (set-face-attribute 'mode-line-active nil :family "Noto Sans" :height 160)
+  (set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 160)
 
+#+end_src
+
+* Package Configuration
+** Use Package
+
+#+begin_src emacs-lisp
+  (require 'package)
+
+  (setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                           ("org" . "https://orgmode.org/elpa/")
+                           ("elpa" . "https://elpa.gnu.org/packages/")
+                           ("gnu-devel" . "https://elpa.gnu.org/devel/")))
+
+  (package-initialize)
+
+  (unless package-archive-contents
+    (package-refresh-contents))
+
+  ;; Initialize use-package on non-Linux platforms
+  (unless (package-installed-p 'use-package)
+    (package-install 'use-package))
+
+  (require 'use-package)
+  (setq use-package-always-ensure t)
+#+end_src
+
+** Ivy
+
+#+begin_src emacs-lisp
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
@@ -70,7 +94,11 @@
 (use-package ivy-rich
   :init
   (ivy-rich-mode 1))
+#+end_src
 
+** Counsel
+
+#+begin_src emacs-lisp
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
 	 ("C-x b" . counsel-ibuffer)
@@ -79,7 +107,12 @@
 	 ("C-r" . 'counsel-minibuffer-history))
   :config
   (setq ivy-initial-inputs-alist nil))
+#+end_src
 
+** Doom Modeline
+
+First time this config is loaded on a new machine, run the command =M-x all-the-icons-install-fonts=
+#+begin_src emacs-lisp
 (use-package all-the-icons)
 
 (use-package doom-modeline
@@ -87,19 +120,35 @@
   :custom ((doom-modeline-height 15)))
 
 (setq doom-modeline-height 15)
+#+end_src
 
+** Doom Themes
+
+#+begin_src emacs-lisp
 (use-package doom-themes
   :init (load-theme 'doom-gruvbox t))
+#+end_src
 
+** Rainbow Delimiters
+
+#+begin_src emacs-lisp
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
 
+** Which Key
+
+#+begin_src emacs-lisp
 (use-package which-key
   :init (which-key-mode)
   :diminish which-key-mode
   :config
   (setq which-key-idle-delay 1))
+#+end_src
 
+** Helpful
+
+#+begin_src emacs-lisp
 (use-package helpful
   :custom
   (counsel-describe-function-function #'helpful-callable)
@@ -109,7 +158,11 @@
   ([remap describe-command] . helpful-command)
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
+#+end_src
 
+** Evil
+
+#+begin_src emacs-lisp
 (defun jef/evil-hook ()
   (dolist (mode '(custom-mode
 		  eshell-mode
@@ -141,7 +194,12 @@
   :after evil
   :config
   (evil-collection-init))
+#+end_src
 
+** Keybindings
+*** General
+
+#+begin_src emacs-lisp
 (defun jef/load-init-el ()
   (interactive)
   (find-file "~/.emacs.d/init.el"))
@@ -185,7 +243,10 @@
   (general-key-dispatch 'self-insert-command
     :timeout 0.2
     "j" 'evil-normal-state))
+#+end_src
 
+*** Hydra
+#+begin_src emacs-lisp
 (use-package hydra)
 
 (defhydra hydra-text-scale (:timeout 4)
@@ -196,7 +257,11 @@
 
 (jef/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
+#+end_src
 
+** Projectile
+
+#+begin_src emacs-lisp
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
@@ -210,14 +275,27 @@
 
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
+#+end_src
 
+** VTerm
+
+#+begin_src emacs-lisp
 (use-package vterm)
+#+end_src
 
+** Magit
+
+#+begin_src emacs-lisp
 (use-package magit
   :commands (magit-status magit-get-current-branch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+#+end_src
 
+* Org Mode
+** Basic Setup
+
+#+begin_src emacs-lisp
 (defun jef/org-mode-setup ()
   (org-indent-mode)
   (variable-pitch-mode 1)
@@ -226,7 +304,10 @@
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
   (setq org-hide-emphasis-markers t)
   (setq evil-auto-indent nil))
+#+end_src
 
+** Fonts
+#+begin_src emacs-lisp
 (defun jef/org-font-setup ()
 
   (dolist (face '((org-level-1 . 1.2)
@@ -248,16 +329,23 @@
     (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
     (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
     (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+#+end_src
 
-(defun jef/org-babel-tangle-config ()
-  (when (string-equal (buffer-file-name)
-                      (expand-file-name "~/.config/emacs/EmacsConfig.org"))
-    (let ((org-confirm-babel-evaluate nil))
-      (org-babel-tangle))))
+** Auto-tangle Configuration Files
+#+begin_src emacs-lisp
+  (defun jef/org-babel-tangle-config ()
+    (when (string-equal (buffer-file-name)
+                        (expand-file-name "~/.config/emacs/EmacsConfig.org"))
+      (let ((org-confirm-babel-evaluate nil))
+        (org-babel-tangle))))
 
-(add-hook 'org-mode-hook
-          (lambda () (add-hook 'after-save-hook #'jef/org-babel-tangle-config)))
+  (add-hook 'org-mode-hook
+            (lambda () (add-hook 'after-save-hook #'jef/org-babel-tangle-config)))
+#+end_src
 
+** Agenda
+
+#+begin_src emacs-lisp
 (use-package org
   :hook (org-mode . jef/org-mode-setup)
   :config
@@ -342,32 +430,45 @@
 		  ((org-agenda-overriding-header "Cancelled Projects")
 		   (org-agenda-files org-agenda-files)))))))
 
-(setq org-capture-templates
-      `(("t" "Tasks / Projects")
-	("tt" "Task" entry (file+olp "~/personal/OrgDatabase/Tasks.org" "Inbox") "* TODO %?\n %U\n %a\n %i" :empty-lines 1)
+#+end_src
 
-	("j" "Journal Entries")
-	("jj" "Journal" entry
-	 (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
-	 "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-	 :clock-in :clock-resume
-	 :empty-lines 1)
-	("jm" "Meeting" entry
-	 (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
-	 "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-	 :clock-in :clock-resume
-	 :empty-lines 1)
-	("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
-	 "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
+** Captures
 
-(jef/org-font-setup))
+#+begin_src emacs-lisp
+  (setq org-capture-templates
+	`(("t" "Tasks / Projects")
+	  ("tt" "Task" entry (file+olp "~/personal/OrgDatabase/Tasks.org" "Inbox") "* TODO %?\n %U\n %a\n %i" :empty-lines 1)
 
+	  ("j" "Journal Entries")
+	  ("jj" "Journal" entry
+	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+	   "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+	   :clock-in :clock-resume
+	   :empty-lines 1)
+	  ("jm" "Meeting" entry
+	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+	   "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+	   :clock-in :clock-resume
+	   :empty-lines 1)
+	  ("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
+	   "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
+  
+  (jef/org-font-setup))
+#+end_src
+
+** Bullets
+
+#+begin_src emacs-lisp
 (use-package org-bullets
   :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+#+end_src
 
+** Visual Fill Column
+
+#+begin_src emacs-lisp
 (defun jef/org-mode-visual-fill ()
   (setq visual-fill-column-width 100
 	visual-fill-column-center-text t)
@@ -376,3 +477,4 @@
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . jef/org-mode-visual-fill))
+#+end_src
