@@ -203,7 +203,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   :hook (evil-mode . jef/evil-hook)
   :config
