@@ -1,15 +1,46 @@
 #+title: Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ./init.el
 
+* System Specific
+** OS Detect
+
+#+begin_src emacs-lisp
+(if (string-equal system-type "darwin")
+  (setq jef/which-machine "mac")
+  (setq jef/which-machine "linux"))
+
+(setq jef/is-mac (string-equal system-type "darwin"))
+(setq jef/is-linux (not jef/is-mac))
+#+end_src
+
+** System Defaults
+
+#+begin_src emacs-lisp
+(defvar jef/default-font-size 140)
+(defvar jef/monospace-font-face "MesloLGS\ NF")
+(defvar jef/variable-font-face "Roboto")
+(defvar jef/mode-line-font-face "Roboto")
+#+end_src
+
+** Linux/Chromebook
+
+#+begin_src emacs-lisp
+(when jef/is-linux
+  (setq jef/default-font-size 120)
+  (setq jef/monospace-font-face "MesloLGS\ NF")
+  (setq jef/variable-font-face "Roboto")
+  (setq jef/mode-line-font-face "Noto Sans"))
+#+end_src
+
 * Basic UI Configuration
 ** Ui Elements
 
 #+begin_src emacs-lisp 
 
-  (defvar jef/default-font-size 160)
 
   (setq inhibit-startup-message t)
   (setq visible-bell t) 
+  (setq-default tab-size 2)
 
   (setq custom-file "~/.config/emacs/custom.el")
   (load custom-file)
@@ -27,6 +58,7 @@
   ;; Disable line numbers for some modes
   (dolist (mode '(org-mode-hook
                   term-mode-hook
+                  vterm-mode-hook
                   shell-mode-hook
                   eshell-mode-hook))
     (add-hook mode (lambda () (display-line-numbers-mode 0))))
@@ -36,12 +68,11 @@
 ** Font Configuration
 
 #+begin_src emacs-lisp 
-
-  (set-face-attribute 'default nil :font "MesloLGS NF" :height 160)
-  (set-face-attribute 'fixed-pitch nil :font "Monaco" :height 160)
-  (set-face-attribute 'variable-pitch nil :font "Microsoft Sans Serif" :height 160)
-  (set-face-attribute 'mode-line nil :family "Noto Sans" :height 140)
-  (set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 140)
+  (set-face-attribute 'default nil :font jef/monospace-font-face :height jef/default-font-size)
+  (set-face-attribute 'fixed-pitch nil :font jef/monospace-font-face :height jef/default-font-size)
+  (set-face-attribute 'variable-pitch nil :font jef/variable-font-face :height jef/default-font-size)
+  (set-face-attribute 'mode-line nil :family jef/mode-line-font-face :height jef/default-font-size)
+  (set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size)
 #+end_src
 
 * Package Configuration
@@ -192,15 +223,24 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   :after evil
   :config
   (evil-collection-init))
+
+(use-package undo-tree
+  :ensure t
+  :after evil
+  :diminish
+  :config
+  (evil-set-undo-system 'undo-tree)
+  (global-undo-tree-mode 1))
+
 #+end_src
 
 ** Keybindings
 *** General
 
 #+begin_src emacs-lisp
-(defun jef/load-init-el ()
+(defun jef/load-emacs-config ()
   (interactive)
-  (find-file "~/.emacs.d/init.el"))
+  (find-file "~/.config/emacs/EmacsConfig.org"))
 
 (defun jef/load-tasks-file ()
   (interactive)
@@ -225,6 +265,20 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
    "t" '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
+   "s" '(:ignore t :which-key "shells")
+   "se" '(eshell :which-key "eshell")
+   "sv" '(vterm :which-key "vterm")
+   "st" '(term :which-key "term")
+   "b" '(:ignore t :which-key "buffers")
+   "bk" '(kill-buffer :which-key "kill buffer")
+   "bK" '(kill-this-buffer :which-key "kill this buffer")
+   "bc" '(counsel-ibuffer :which-key "switch")
+   "g" '(:ignore t :which-key "git")
+   "gs" '(magit-status :which-key "status")
+   "gp" '(magit-push :which-key "push")
+   "gf" '(magit-pull :which-key "pull")
+   "gi" '(magit-pull :which-key "init")
+   "gc" '(magit-commit :which-key "commit")
    "a" '(:ignore t :which-key "agenda")
    "aa" '(org-agenda :which-key "Open Agenda")
    "at" '(counsel-org-tag :which-key "Add Tag")
@@ -232,7 +286,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 
   (jef/emacs-base
    "s" '(:ignore t :which-key "source")
-   "se" '(jef/load-init-el :which-key "Edit init.el")
+   "se" '(jef/load-emacs-config :which-key "Edit ")
    "st" '(jef/load-tasks-file :which-key "Edit Tasks.org")
    "si" '(jef/load-org-index :which-key "Edit Index.org")))
 
@@ -291,6 +345,18 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
 #+end_src
 
+** Tree Sitter
+
+#+begin_src emacs-lisp
+(use-package tree-sitter
+:config
+(global-tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+:after tree-sitter)
+#+end_src
+
 ** Language Servers
 *** LSP Mode
 
@@ -305,7 +371,6 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
-    (set-face-attribute 'lsp-headerline-breadcrumb-path-face nil :inherit 'fixed-pitch)
     (lsp-enable-which-key-integration t))
 
   (use-package lsp-ui
@@ -337,6 +402,14 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     :hook (company-mode . company-box-mode))
 #+end_src
 
+*** Formatting
+
+#+begin_src emacs-lisp
+(use-package apheleia
+:config
+(apheleia-global-mode +1))
+#+end_src
+
 *** Treemacs
 
 #+begin_src emacs-lisp
@@ -345,13 +418,86 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 #+end_src
 
 *** Typescript
+You have to install =theia ide= language server for this to work properly. Instructions [[https://emacs-lsp.github.io/lsp-mode/page/lsp-typescript/][here]]
 
 #+begin_src emacs-lisp
   (use-package typescript-mode
-    :mode "\\.ts\\'"
+    :after tree-sitter
     :hook (typescript-mode . lsp-deferred)
     :config
     (setq typescript-indent-level 2))
+
+  (define-derived-mode typescriptreact-mode typescript-mode "Typescript TSX")
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
+  (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
+#+end_src
+
+*** Go
+You should have the go LSP server installed. You can find instructions [[https://github.com/golang/tools/tree/master/gopls#installation][here]]
+
+#+begin_src emacs-lisp
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
+
+(add-hook 'go-mode (lambda () (setq tab-width 2)))
+#+end_src
+
+*** Rust
+You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github.com/rust-lang/rust-analyzer#language-server-quick-start][here]]
+
+#+begin_src emacs-lisp
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :config
+  (setq rust-format-on-save t))
+
+(add-hook 'rust-mode-hook
+  (lambda () (setq indent-tabs-mode nil)))
+
+(add-hook 'rust-mode-hook
+  (lambda () (prettify-symbols-mode)))
+
+(add-hook 'rust-mode-hook #'lsp)
+
+;(define-key rust-mode-map (kbd "C-c C-c") 'rust-run)
+
+#+end_src
+
+* Shells
+** EShell
+
+#+begin_src emacs-lisp
+(defun efs/configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  ;; Bind some useful keys for evil-mode
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-keymaps)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell-git-prompt)
+
+(use-package eshell
+  :hook (eshell-first-time-mode . efs/configure-eshell)
+  :config
+  (defalias 'ff 'find-file)
+  (defalias 'ffo 'find-file-other-window)
+
+  (with-eval-after-load 'esh-opt
+    (setq eshell-destroy-buffer-when-process-dies t)
+    (setq eshell-visual-commands '("htop" "zsh" "vim")))
+
+  (eshell-git-prompt-use-theme 'powerline))
 #+end_src
 
 * Org Mode
@@ -380,7 +526,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   		(org-level-6 . 1.1)
   		(org-level-7 . 1.1)
   		(org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Microsoft Sans Serif" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "MesloLGS NF" :weight 'regular :height (cdr face)))
   
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
     (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -550,3 +696,4 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 #+end_src
+

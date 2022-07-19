@@ -1,9 +1,8 @@
-(defvar jef/default-font-size 160)
-
 (setq inhibit-startup-message t)
 (setq visible-bell t) 
+(setq-default tab-size 2)
 
-(setq custom-file "~/.emacs.d/custom.el")
+(setq custom-file "~/.config/emacs/custom.el")
 (load custom-file)
 
 (scroll-bar-mode -1)   ; Disable visible scrollbar
@@ -19,16 +18,18 @@
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
                 term-mode-hook
+                vterm-mode-hook
                 shell-mode-hook
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-(set-face-attribute 'default nil :font "MesloLGS NF" :height 160)
-(set-face-attribute 'fixed-pitch nil :font "Monaco" :height 160)
-(set-face-attribute 'variable-pitch nil :font "Microsoft Sans Serif" :height 160)
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height 160)
-(set-face-attribute 'mode-line-active nil :family "Noto Sans" :height 160)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height 160)
+(defvar jef/default-font-size 120)
+
+(set-face-attribute 'default nil :font "MesloLGS NF" :height jef/default-font-size)
+(set-face-attribute 'fixed-pitch nil :font "MesloLGS NF" :height jef/default-font-size)
+(set-face-attribute 'variable-pitch nil :font "Roboto" :height jef/default-font-size)
+(set-face-attribute 'mode-line nil :family "Noto Sans" :height jef/default-font-size)
+(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height jef/default-font-size)
 
 (require 'package)
 
@@ -142,9 +143,17 @@
   :config
   (evil-collection-init))
 
-(defun jef/load-init-el ()
+(use-package undo-tree
+  :ensure t
+  :after evil
+  :diminish
+  :config
+  (evil-set-undo-system 'undo-tree)
+  (global-undo-tree-mode 1))
+
+(defun jef/load-emacs-config ()
   (interactive)
-  (find-file "~/.emacs.d/init.el"))
+  (find-file "~/.config/emacs/EmacsConfig.org"))
 
 (defun jef/load-tasks-file ()
   (interactive)
@@ -169,6 +178,20 @@
   (jef/leader-keys
    "t" '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
+   "s" '(:ignore t :which-key "shells")
+   "se" '(eshell :which-key "eshell")
+   "sv" '(vterm :which-key "vterm")
+   "st" '(term :which-key "term")
+   "b" '(:ignore t :which-key "buffers")
+   "bk" '(kill-buffer :which-key "kill buffer")
+   "bK" '(kill-this-buffer :which-key "kill this buffer")
+   "bc" '(counsel-ibuffer :which-key "switch")
+   "g" '(:ignore t :which-key "git")
+   "gs" '(magit-status :which-key "status")
+   "gp" '(magit-push :which-key "push")
+   "gf" '(magit-pull :which-key "pull")
+   "gi" '(magit-pull :which-key "init")
+   "gc" '(magit-commit :which-key "commit")
    "a" '(:ignore t :which-key "agenda")
    "aa" '(org-agenda :which-key "Open Agenda")
    "at" '(counsel-org-tag :which-key "Add Tag")
@@ -176,7 +199,7 @@
 
   (jef/emacs-base
    "s" '(:ignore t :which-key "source")
-   "se" '(jef/load-init-el :which-key "Edit init.el")
+   "se" '(jef/load-emacs-config :which-key "Edit ")
    "st" '(jef/load-tasks-file :which-key "Edit Tasks.org")
    "si" '(jef/load-org-index :which-key "Edit Index.org")))
 
@@ -197,6 +220,8 @@
 (jef/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
 
+(use-package vterm)
+
 (use-package projectile
   :diminish projectile-mode
   :config (projectile-mode)
@@ -211,12 +236,123 @@
 (use-package counsel-projectile
   :config (counsel-projectile-mode))
 
-(use-package vterm)
-
 (use-package magit
   :commands (magit-status magit-get-current-branch)
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
+
+(use-package tree-sitter
+:config
+(global-tree-sitter-mode)
+(add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
+(use-package tree-sitter-langs
+:after tree-sitter)
+
+(defun jef/lsp-mode-setup ()
+  (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+  (lsp-headerline-breadcrumb-mode))
+
+(use-package lsp-mode
+  :commands (lsp lsp-deferred)
+  :hook (lsp-mode . jef/lsp-mode-setup)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :config
+  (lsp-enable-which-key-integration t))
+
+(use-package lsp-ui
+  :hook (lsp-mode . lsp-ui-mode)
+  :custom
+  (lsp-ui-doc-position 'bottom)
+  (lsp-ui-peek-show-directory nil)
+  :config
+  (jef/leader-keys "tr" '(lsp-ui-peek-find-references :which-key "Find References")))
+
+(use-package lsp-ivy)
+
+(use-package company
+:after lsp-mode
+:hook (lsp-mode . company-mode)
+:bind (:map company-active-map
+            ("<tab>" . company-complete-selection))
+      (:map lsp-mode-map
+            ("<tab>" . company-indent-or-complete-common))
+:custom
+(company-minimum-prefix-length 1)
+(company-idle-delay 0.0))
+
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
+(use-package apheleia
+:config
+(apheleia-global-mode +1))
+
+(use-package lsp-treemacs
+  :after lsp)
+
+(use-package typescript-mode
+  :after tree-sitter
+  :hook (typescript-mode . lsp-deferred)
+  :config
+  (setq typescript-indent-level 2))
+
+(define-derived-mode typescriptreact-mode typescript-mode "Typescript TSX")
+(add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
+(add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
+
+(use-package go-mode
+  :mode "\\.go\\'"
+  :hook (go-mode . lsp-deferred))
+
+(add-hook 'go-mode (lambda () (setq tab-width 2)))
+
+(use-package rust-mode
+  :mode "\\.rs\\'"
+  :config
+  (setq rust-format-on-save t))
+
+(add-hook 'rust-mode-hook
+  (lambda () (setq indent-tabs-mode nil)))
+
+(add-hook 'rust-mode-hook
+  (lambda () (prettify-symbols-mode)))
+
+(add-hook 'rust-mode-hook #'lsp)
+
+;(define-key rust-mode-map (kbd "C-c C-c") 'rust-run)
+
+(defun efs/configure-eshell ()
+  ;; Save command history when commands are entered
+  (add-hook 'eshell-pre-command-hook 'eshell-save-some-history)
+
+  ;; Truncate buffer for performance
+  (add-to-list 'eshell-output-filter-functions 'eshell-truncate-buffer)
+
+  ;; Bind some useful keys for evil-mode
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "C-r") 'counsel-esh-history)
+  (evil-define-key '(normal insert visual) eshell-mode-map (kbd "<home>") 'eshell-bol)
+  (evil-normalize-keymaps)
+
+  (setq eshell-history-size         10000
+        eshell-buffer-maximum-lines 10000
+        eshell-hist-ignoredups t
+        eshell-scroll-to-bottom-on-input t))
+
+(use-package eshell-git-prompt)
+
+(use-package eshell
+  :hook (eshell-first-time-mode . efs/configure-eshell)
+  :config
+  (defalias 'ff 'find-file)
+  (defalias 'ffo 'find-file-other-window)
+
+  (with-eval-after-load 'esh-opt
+    (setq eshell-destroy-buffer-when-process-dies t)
+    (setq eshell-visual-commands '("htop" "zsh" "vim")))
+
+  (eshell-git-prompt-use-theme 'powerline))
 
 (defun jef/org-mode-setup ()
   (org-indent-mode)
@@ -237,7 +373,7 @@
   		(org-level-6 . 1.1)
   		(org-level-7 . 1.1)
   		(org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "Microsoft Sans Serif" :weight 'regular :height (cdr face)))
+    (set-face-attribute (car face) nil :font "MesloLGS NF" :weight 'regular :height (cdr face)))
   
   ;; Ensure that anything that should be fixed-pitch in Org files appears that way
     (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
@@ -376,3 +512,9 @@
 (use-package visual-fill-column
   :defer t
   :hook (org-mode . jef/org-mode-visual-fill))
+
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("sh" . "src shell"))
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
