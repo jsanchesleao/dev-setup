@@ -50,6 +50,7 @@
   (menu-bar-mode -1)     ; Disable the menu bar
   (tooltip-mode -1)      ; Disable tooltips
   (set-fringe-mode 10)   ; Give some breathing room
+  (display-time-mode 1)  ; I like having a clock always visible
 
   (column-number-mode)
   (global-display-line-numbers-mode t)
