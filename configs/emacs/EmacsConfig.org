@@ -372,7 +372,9 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     :init
     (setq lsp-keymap-prefix "C-c l")
     :config
-    (lsp-enable-which-key-integration t))
+    (lsp-enable-which-key-integration t)
+    (setq read-process-output-max (* 1024 1024))
+    (setq gc-cons-threshold 10000000))
 
   (use-package lsp-ui
     :hook (lsp-mode . lsp-ui-mode)
@@ -433,6 +435,17 @@ You have to install =theia ide= language server for this to work properly. Instr
   (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
 #+end_src
 
+*** Javascript
+
+#+begin_src emacs-lisp
+  (use-package js2-mode
+    :after tree-sitter
+    :hook (js2-mode . lsp-deferred))
+
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+  (add-to-list 'tree-sitter-major-mode-language-alist '(js2-mode . js))
+#+end_src
+
 *** Go
 You should have the go LSP server installed. You can find instructions [[https://github.com/golang/tools/tree/master/gopls#installation][here]]
 
@@ -441,7 +454,7 @@ You should have the go LSP server installed. You can find instructions [[https:/
   :mode "\\.go\\'"
   :hook (go-mode . lsp-deferred))
 
-(add-hook 'go-mode (lambda () (setq tab-width 2)))
+(add-hook 'go-mode (lambda () (setq-default tab-width 4)))
 #+end_src
 
 *** Rust
