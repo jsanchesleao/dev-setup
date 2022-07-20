@@ -17,7 +17,7 @@
 
 #+begin_src emacs-lisp
 (defvar jef/default-font-size 140)
-(defvar jef/monospace-font-face "MesloLGS\ NF")
+(defvar jef/monospace-font-face "MesloLGS NF")
 (defvar jef/variable-font-face "Roboto")
 (defvar jef/mode-line-font-face "Roboto")
 #+end_src
@@ -25,11 +25,22 @@
 ** Linux/Chromebook
 
 #+begin_src emacs-lisp
-(when jef/is-linux
-  (setq jef/default-font-size 120)
-  (setq jef/monospace-font-face "MesloLGS\ NF")
-  (setq jef/variable-font-face "Roboto")
-  (setq jef/mode-line-font-face "Noto Sans"))
+  (when jef/is-linux
+    (setq jef/default-font-size 120)
+    (setq jef/monospace-font-face "MesloLGS\ NF")
+    (setq jef/variable-font-face "Roboto")
+    (setq jef/mode-line-font-face "Noto Sans"))
+#+end_src
+
+** Mac OSX
+
+#+begin_src emacs-lisp
+  (when jef/is-mac
+    (setq jef/default-font-size 150)
+    (setq jef/monospace-font-face "MesloLGS NF")
+    (setq jef/variable-font-face "Microsoft Sans Serif")
+    (setq jef/mode-line-font-face "Noto Sans")
+    (setq insert-directory-program "/usr/local/opt/coreutils/libexec/gnubin/ls"))
 #+end_src
 
 * Basic UI Configuration
@@ -43,7 +54,7 @@
   (setq-default tab-size 2)
 
   (setq custom-file "~/.config/emacs/custom.el")
-  (load custom-file)
+  (load custom-file 'noerror 'nomessage)
 
   (scroll-bar-mode -1)   ; Disable visible scrollbar
   (tool-bar-mode -1)     ; Disable the toolbar
@@ -51,10 +62,14 @@
   (tooltip-mode -1)      ; Disable tooltips
   (set-fringe-mode 10)   ; Give some breathing room
   (display-time-mode 1)  ; I like having a clock always visible
+  (recentf-mode 1)       ; Enable recent file mode
+  (savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
+  (global-auto-revert-mode 1)
 
   (column-number-mode)
   (global-display-line-numbers-mode t)
   (setq display-line-numbers 'relative)
+  (setq global-auto-revert-non-file-buffers t)
 
   ;; Disable line numbers for some modes
   (dolist (mode '(org-mode-hook
@@ -103,27 +118,28 @@
 ** Ivy
 
 #+begin_src emacs-lisp
-(use-package ivy
-  :diminish
-  :bind (("C-s" . swiper)
-	 :map ivy-minibuffer-map
-	 ("TAB" . ivy-alt-done)
-	 ("C-l" . ivy-alt-done)
-	 ("C-j" . ivy-next-line)
-	 ("C-k" . ivy-previous-line)
-	 :map ivy-switch-buffer-map
-	 ("C-k" . ivy-previous-line)
-	 ("C-l" . ivy-done)
-	 ("C-d" . ivy-switch-buffer-kill)
-	 :map ivy-reverse-i-search-map
-	 ("C-k" . ivy-previous-line)
-	 ("C-d" . ivy-reverse-i-search-kill))
-  :config
-  (ivy-mode 1))
+  (use-package ivy
+    :diminish
+    :bind (("C-s" . swiper)
+           :map ivy-minibuffer-map
+           ("TAB" . ivy-alt-done)
+           ("C-l" . ivy-alt-done)
+           ("C-j" . ivy-next-line)
+           ("C-d" . ivy-immediate-done)
+           ("C-k" . ivy-previous-line)
+           :map ivy-switch-buffer-map
+           ("C-k" . ivy-previous-line)
+           ("C-l" . ivy-done)
+           ("C-d" . ivy-switch-buffer-kill)
+           :map ivy-reverse-i-search-map
+           ("C-k" . ivy-previous-line)
+           ("C-d" . ivy-reverse-i-search-kill))
+    :config
+    (ivy-mode 1))
 
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
+  (use-package ivy-rich
+    :init
+    (ivy-rich-mode 1))
 #+end_src
 
 ** Counsel
@@ -156,7 +172,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 
 #+begin_src emacs-lisp
 (use-package doom-themes
-  :init (load-theme 'doom-gruvbox t))
+  :init (load-theme 'doom-material-dark t))
 #+end_src
 
 ** Rainbow Delimiters
@@ -274,6 +290,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
    "bk" '(kill-buffer :which-key "kill buffer")
    "bK" '(kill-this-buffer :which-key "kill this buffer")
    "bc" '(counsel-ibuffer :which-key "switch")
+   "bb" '(ibuffer :which-key "switch")
    "g" '(:ignore t :which-key "git")
    "gs" '(magit-status :which-key "status")
    "gp" '(magit-push :which-key "push")
@@ -362,29 +379,31 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 *** LSP Mode
 
 #+begin_src emacs-lisp
-  (defun jef/lsp-mode-setup ()
-    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-    (lsp-headerline-breadcrumb-mode))
+      (defun jef/lsp-mode-setup ()
+        (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+        (lsp-headerline-breadcrumb-mode))
 
-  (use-package lsp-mode
-    :commands (lsp lsp-deferred)
-    :hook (lsp-mode . jef/lsp-mode-setup)
-    :init
-    (setq lsp-keymap-prefix "C-c l")
-    :config
-    (lsp-enable-which-key-integration t)
-    (setq read-process-output-max (* 1024 1024))
-    (setq gc-cons-threshold 10000000))
+      (use-package lsp-mode
+        :commands (lsp lsp-deferred)
+        :hook (lsp-mode . jef/lsp-mode-setup)
+        :init
+        (setq lsp-keymap-prefix "C-c l")
+        :config
+        (lsp-enable-which-key-integration t)
+        (setq read-process-output-max (* 1024 1024))
+        (setq gc-cons-threshold 100000000))
 
-  (use-package lsp-ui
-    :hook (lsp-mode . lsp-ui-mode)
-    :custom
-    (lsp-ui-doc-position 'bottom)
-    (lsp-ui-peek-show-directory nil)
-    :config
-    (jef/leader-keys "tr" '(lsp-ui-peek-find-references :which-key "Find References")))
+      (use-package lsp-ui
+        :hook (lsp-mode . lsp-ui-mode)
+        :custom
+        (lsp-ui-doc-position 'bottom)
+        (lsp-ui-peek-show-directory nil)
+        :config
+        (jef/leader-keys
+          "tr" '(lsp-ui-peek-find-references :which-key "Find References")
+          "td" '(lsp-ui-peek-find-definitions :which-key "Find Definitions")))
 
-  (use-package lsp-ivy)
+      (use-package lsp-ivy)
 #+end_src
 
 *** Company
@@ -524,6 +543,7 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
   (auto-fill-mode 0)
   (visual-line-mode 1)
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
   (setq org-hide-emphasis-markers t)
   (setq evil-auto-indent nil))
 #+end_src
@@ -711,3 +731,33 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 #+end_src
 
+* File Management
+** Dired
+
+#+begin_src emacs-lisp
+  (use-package dired
+    :ensure nil
+    :commands (dired dired-jump)
+    :bind(("C-x C-j" . dired-jump))
+    :custom ((dired-listing-switches "-agho --group-directories-first"))
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "h" 'dired-single-up-directory
+      "l" 'dired-single-buffer))
+
+  (use-package dired-single)
+  (use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
+
+  (use-package dired-hide-dotfiles
+    :hook (dired-mode . dired-hide-dotfiles-mode)
+    :config
+    (evil-collection-define-key 'normal 'dired-mode-map
+      "H" 'dired-hide-dotfiles-mode))
+#+end_src
