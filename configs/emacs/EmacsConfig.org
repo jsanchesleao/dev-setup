@@ -282,6 +282,10 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
    "t" '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
+   "c" '(:ignore t :which-key "code")
+   "cF" '(lsp-eslint-apply-all-fixes :which-key "eslint fix")
+   "cf" '(apheleia-format-buffer :which-key "format")
+   "cr" '(revert-buffer-quick :which-key "revert")
    "s" '(:ignore t :which-key "shells")
    "se" '(eshell :which-key "eshell")
    "sv" '(vterm :which-key "vterm")
