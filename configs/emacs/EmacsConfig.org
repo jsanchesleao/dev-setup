@@ -115,6 +115,12 @@
   (setq use-package-always-ensure t)
 #+end_src
 
+** Try
+
+#+begin_src emacs-lisp
+(use-package try)
+#+end_src
+
 ** Ivy
 
 #+begin_src emacs-lisp
@@ -761,3 +767,4 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
 #+end_src
+
