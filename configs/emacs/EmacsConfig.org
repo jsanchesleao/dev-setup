@@ -51,6 +51,7 @@
 
   (setq inhibit-startup-message t)
   (setq visible-bell t) 
+  (setq initial-scratch-message nil)
   (setq-default tab-size 2)
 
   (setq custom-file "~/.config/emacs/custom.el")
@@ -261,82 +262,109 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 *** General
 
 #+begin_src emacs-lisp
-(defun jef/load-emacs-config ()
-  (interactive)
-  (find-file "~/.config/emacs/EmacsConfig.org"))
+  (defun jef/load-emacs-config ()
+    (interactive)
+    (find-file "~/.config/emacs/EmacsConfig.org"))
 
-(defun jef/load-tasks-file ()
-  (interactive)
-  (find-file "~/personal/OrgDatabase/Tasks.org"))
+  (defun jef/load-tasks-file ()
+    (interactive)
+    (find-file "~/personal/OrgDatabase/Tasks.org"))
 
-(defun jef/load-org-index ()
-  (interactive)
-  (find-file "~/personal/OrgDatabase/Index.org"))
+  (defun jef/load-org-index ()
+    (interactive)
+    (find-file "~/personal/OrgDatabase/Index.org"))
+  
+  (use-package general
+    :config
+    (general-create-definer jef/leader-keys
+      :keymaps '(normal insert visual emacs)
+      :prefix "SPC"
+      :global-prefix "C-SPC")
 
-(use-package general
-  :config
-  (general-create-definer jef/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC")
+    (general-create-definer jef/emacs-base
+      :keymaps '(normal insert visual emacs)
+      :prefix "C-,"
+      :globa-prefix "C-S-,")
 
-  (general-create-definer jef/emacs-base
-    :keymaps '(normal insert visual emacs)
-    :prefix "C-,"
-    :globa-prefix "C-S-,")
+    (jef/leader-keys
+     "t" '(:ignore t :which-key "toggles")
+     "tt" '(counsel-load-theme :which-key "choose theme")
+     "c" '(:ignore t :which-key "code")
+     "cF" '(lsp-eslint-apply-all-fixes :which-key "eslint fix")
+     "cf" '(apheleia-format-buffer :which-key "format")
+     "cr" '(revert-buffer-quick :which-key "revert")
+     "s" '(:ignore t :which-key "shells")
+     "se" '(eshell :which-key "eshell")
+     "sv" '(vterm :which-key "vterm")
+     "st" '(term :which-key "term")
+     "b" '(:ignore t :which-key "buffers")
+     "bk" '(kill-buffer :which-key "kill buffer")
+     "bK" '(kill-this-buffer :which-key "kill this buffer")
+     "bc" '(counsel-ibuffer :which-key "switch")
+     "bb" '(ibuffer :which-key "switch")
+     "g" '(:ignore t :which-key "git")
+     "gs" '(magit-status :which-key "status")
+     "gp" '(magit-push :which-key "push")
+     "gf" '(magit-pull :which-key "pull")
+     "gi" '(magit-pull :which-key "init")
+     "gc" '(magit-commit :which-key "commit")
+     "a" '(:ignore t :which-key "agenda")
+     "aa" '(org-agenda :which-key "Open Agenda")
+     "at" '(counsel-org-tag :which-key "Add Tag")
+     "as" '(org-shiftright :which-key "Cycle Labels"))
 
-  (jef/leader-keys
-   "t" '(:ignore t :which-key "toggles")
-   "tt" '(counsel-load-theme :which-key "choose theme")
-   "c" '(:ignore t :which-key "code")
-   "cF" '(lsp-eslint-apply-all-fixes :which-key "eslint fix")
-   "cf" '(apheleia-format-buffer :which-key "format")
-   "cr" '(revert-buffer-quick :which-key "revert")
-   "s" '(:ignore t :which-key "shells")
-   "se" '(eshell :which-key "eshell")
-   "sv" '(vterm :which-key "vterm")
-   "st" '(term :which-key "term")
-   "b" '(:ignore t :which-key "buffers")
-   "bk" '(kill-buffer :which-key "kill buffer")
-   "bK" '(kill-this-buffer :which-key "kill this buffer")
-   "bc" '(counsel-ibuffer :which-key "switch")
-   "bb" '(ibuffer :which-key "switch")
-   "g" '(:ignore t :which-key "git")
-   "gs" '(magit-status :which-key "status")
-   "gp" '(magit-push :which-key "push")
-   "gf" '(magit-pull :which-key "pull")
-   "gi" '(magit-pull :which-key "init")
-   "gc" '(magit-commit :which-key "commit")
-   "a" '(:ignore t :which-key "agenda")
-   "aa" '(org-agenda :which-key "Open Agenda")
-   "at" '(counsel-org-tag :which-key "Add Tag")
-   "as" '(org-shiftright :which-key "Cycle Labels"))
+    (jef/emacs-base
+     "s" '(:ignore t :which-key "source")
+     "se" '(jef/load-emacs-config :which-key "Edit ")
+     "st" '(jef/load-tasks-file :which-key "Edit Tasks.org")
+     "si" '(jef/load-org-index :which-key "Edit Index.org")))
 
-  (jef/emacs-base
-   "s" '(:ignore t :which-key "source")
-   "se" '(jef/load-emacs-config :which-key "Edit ")
-   "st" '(jef/load-tasks-file :which-key "Edit Tasks.org")
-   "si" '(jef/load-org-index :which-key "Edit Index.org")))
-
-(general-evil-setup)
-(general-imap "k"
-  (general-key-dispatch 'self-insert-command
-    :timeout 0.2
-    "j" 'evil-normal-state))
+  (general-evil-setup)
+  (general-imap "k"
+    (general-key-dispatch 'self-insert-command
+      :timeout 0.2
+      "j" 'evil-normal-state))
 #+end_src
 
 *** Hydra
 #+begin_src emacs-lisp
-(use-package hydra)
+  (use-package hydra)
 
-(defhydra hydra-text-scale (:timeout 4)
-  "scale text"
-  ("j" text-scale-increase "in")
-  ("k" text-scale-decrease "out")
-  ("f" nil "finished" :exit t))
+  (defhydra hydra-text-scale (:timeout 4)
+    "scale text"
+    ("j" text-scale-increase "in")
+    ("k" text-scale-decrease "out")
+    ("f" nil "finished" :exit t))
 
-(jef/leader-keys
-  "ts" '(hydra-text-scale/body :which-key "scale text"))
+  (jef/leader-keys
+    "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+  (defhydra hydra-change-windows
+    "moves between windows"
+    ("h" evil-window-left "left")
+    ("j" evil-window-down "down")
+    ("k" evil-window-up "up")
+    ("l" evil-window-right "right")
+    ("q" nil "quit" :exit t))
+#+end_src
+
+** Switch Window
+
+#+begin_src emacs-lisp
+  (use-package switch-window
+  :after general
+  :config
+
+    (jef/leader-keys
+    "w" '(:ignore t :which-key "window")
+    "ww" '(switch-window :which-key "switch window")
+    "wh" '(switch-window-then-split-vertically :which-key "spit horizontally")
+    "wv" '(switch-window-then-split-horizontally :which-key "split vertically")
+    "wf" '(switch-window-then-find-file :which-key "switch and find file")
+    "wd" '(switch-window-then-dired :which-key "switch and dired")
+    "wb" '(switch-window-then-display-buffer :which-key "switch and open buffer")
+    "ws" '(switch-window-then-swap-buffer :which-key "swap buffers")))
+
 #+end_src
 
 ** VTerm

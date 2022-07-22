@@ -1,19 +1,49 @@
+(if (string-equal system-type "darwin")
+  (setq jef/which-machine "mac")
+  (setq jef/which-machine "linux"))
+
+(setq jef/is-mac (string-equal system-type "darwin"))
+(setq jef/is-linux (not jef/is-mac))
+
+(defvar jef/default-font-size 140)
+(defvar jef/monospace-font-face "MesloLGS NF")
+(defvar jef/variable-font-face "Roboto")
+(defvar jef/mode-line-font-face "Roboto")
+
+(when jef/is-linux
+  (setq jef/default-font-size 120)
+  (setq jef/monospace-font-face "MesloLGS\ NF")
+  (setq jef/variable-font-face "Roboto")
+  (setq jef/mode-line-font-face "Noto Sans"))
+
+(when jef/is-mac
+  (setq jef/default-font-size 150)
+  (setq jef/monospace-font-face "MesloLGS NF")
+  (setq jef/variable-font-face "Microsoft Sans Serif")
+  (setq jef/mode-line-font-face "Noto Sans")
+  (setq insert-directory-program "/usr/local/opt/coreutils/libexec/gnubin/ls"))
+
 (setq inhibit-startup-message t)
 (setq visible-bell t) 
 (setq-default tab-size 2)
 
 (setq custom-file "~/.config/emacs/custom.el")
-(load custom-file)
+(load custom-file 'noerror 'nomessage)
 
 (scroll-bar-mode -1)   ; Disable visible scrollbar
 (tool-bar-mode -1)     ; Disable the toolbar
 (menu-bar-mode -1)     ; Disable the menu bar
 (tooltip-mode -1)      ; Disable tooltips
 (set-fringe-mode 10)   ; Give some breathing room
+(display-time-mode 1)  ; I like having a clock always visible
+(recentf-mode 1)       ; Enable recent file mode
+(savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
+(global-auto-revert-mode 1)
 
 (column-number-mode)
 (global-display-line-numbers-mode t)
 (setq display-line-numbers 'relative)
+(setq global-auto-revert-non-file-buffers t)
 
 ;; Disable line numbers for some modes
 (dolist (mode '(org-mode-hook
@@ -23,13 +53,11 @@
                 eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
-(defvar jef/default-font-size 120)
-
-(set-face-attribute 'default nil :font "MesloLGS NF" :height jef/default-font-size)
-(set-face-attribute 'fixed-pitch nil :font "MesloLGS NF" :height jef/default-font-size)
-(set-face-attribute 'variable-pitch nil :font "Roboto" :height jef/default-font-size)
-(set-face-attribute 'mode-line nil :family "Noto Sans" :height jef/default-font-size)
-(set-face-attribute 'mode-line-inactive nil :family "Noto Sans" :height jef/default-font-size)
+(set-face-attribute 'default nil :font jef/monospace-font-face :height jef/default-font-size)
+(set-face-attribute 'fixed-pitch nil :font jef/monospace-font-face :height jef/default-font-size)
+(set-face-attribute 'variable-pitch nil :font jef/variable-font-face :height jef/default-font-size)
+(set-face-attribute 'mode-line nil :family jef/mode-line-font-face :height jef/default-font-size)
+(set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size)
 
 (require 'package)
 
@@ -50,21 +78,24 @@
 (require 'use-package)
 (setq use-package-always-ensure t)
 
+(use-package try)
+
 (use-package ivy
   :diminish
   :bind (("C-s" . swiper)
-	 :map ivy-minibuffer-map
-	 ("TAB" . ivy-alt-done)
-	 ("C-l" . ivy-alt-done)
-	 ("C-j" . ivy-next-line)
-	 ("C-k" . ivy-previous-line)
-	 :map ivy-switch-buffer-map
-	 ("C-k" . ivy-previous-line)
-	 ("C-l" . ivy-done)
-	 ("C-d" . ivy-switch-buffer-kill)
-	 :map ivy-reverse-i-search-map
-	 ("C-k" . ivy-previous-line)
-	 ("C-d" . ivy-reverse-i-search-kill))
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-d" . ivy-immediate-done)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
   :config
   (ivy-mode 1))
 
@@ -90,7 +121,7 @@
 (setq doom-modeline-height 15)
 
 (use-package doom-themes
-  :init (load-theme 'doom-gruvbox t))
+  :init (load-theme 'doom-material-dark t))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -122,7 +153,7 @@
   :init
   (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   :hook (evil-mode . jef/evil-hook)
   :config
@@ -178,6 +209,10 @@
   (jef/leader-keys
    "t" '(:ignore t :which-key "toggles")
    "tt" '(counsel-load-theme :which-key "choose theme")
+   "c" '(:ignore t :which-key "code")
+   "cF" '(lsp-eslint-apply-all-fixes :which-key "eslint fix")
+   "cf" '(apheleia-format-buffer :which-key "format")
+   "cr" '(revert-buffer-quick :which-key "revert")
    "s" '(:ignore t :which-key "shells")
    "se" '(eshell :which-key "eshell")
    "sv" '(vterm :which-key "vterm")
@@ -186,6 +221,7 @@
    "bk" '(kill-buffer :which-key "kill buffer")
    "bK" '(kill-this-buffer :which-key "kill this buffer")
    "bc" '(counsel-ibuffer :which-key "switch")
+   "bb" '(ibuffer :which-key "switch")
    "g" '(:ignore t :which-key "git")
    "gs" '(magit-status :which-key "status")
    "gp" '(magit-push :which-key "push")
@@ -259,7 +295,9 @@
   :init
   (setq lsp-keymap-prefix "C-c l")
   :config
-  (lsp-enable-which-key-integration t))
+  (lsp-enable-which-key-integration t)
+  (setq read-process-output-max (* 1024 1024))
+  (setq gc-cons-threshold 100000000))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -267,7 +305,9 @@
   (lsp-ui-doc-position 'bottom)
   (lsp-ui-peek-show-directory nil)
   :config
-  (jef/leader-keys "tr" '(lsp-ui-peek-find-references :which-key "Find References")))
+  (jef/leader-keys
+    "tr" '(lsp-ui-peek-find-references :which-key "Find References")
+    "td" '(lsp-ui-peek-find-definitions :which-key "Find Definitions")))
 
 (use-package lsp-ivy)
 
@@ -302,11 +342,18 @@
 (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescriptreact-mode))
 (add-to-list 'tree-sitter-major-mode-language-alist '(typescriptreact-mode . tsx))
 
+(use-package js2-mode
+  :after tree-sitter
+  :hook (js2-mode . lsp-deferred))
+
+(add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
+(add-to-list 'tree-sitter-major-mode-language-alist '(js2-mode . js))
+
 (use-package go-mode
   :mode "\\.go\\'"
   :hook (go-mode . lsp-deferred))
 
-(add-hook 'go-mode (lambda () (setq tab-width 2)))
+(add-hook 'go-mode (lambda () (setq-default tab-width 4)))
 
 (use-package rust-mode
   :mode "\\.rs\\'"
@@ -360,6 +407,7 @@
   (auto-fill-mode 0)
   (visual-line-mode 1)
   (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
+  (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
   (setq org-hide-emphasis-markers t)
   (setq evil-auto-indent nil))
 
@@ -518,3 +566,29 @@
 (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
 (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump)
+  :bind(("C-x C-j" . dired-jump))
+  :custom ((dired-listing-switches "-agho --group-directories-first"))
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "h" 'dired-single-up-directory
+    "l" 'dired-single-buffer))
+
+(use-package dired-single)
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
+
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :config
+  (evil-collection-define-key 'normal 'dired-mode-map
+    "H" 'dired-hide-dotfiles-mode))
