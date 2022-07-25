@@ -54,23 +54,16 @@
   (setq initial-scratch-message nil)
   (setq-default tab-size 2)
 
-  (setq custom-file "~/.config/emacs/custom.el")
-  (load custom-file 'noerror 'nomessage)
-
   (scroll-bar-mode -1)   ; Disable visible scrollbar
   (tool-bar-mode -1)     ; Disable the toolbar
   (menu-bar-mode -1)     ; Disable the menu bar
   (tooltip-mode -1)      ; Disable tooltips
   (set-fringe-mode 10)   ; Give some breathing room
   (display-time-mode 1)  ; I like having a clock always visible
-  (recentf-mode 1)       ; Enable recent file mode
-  (savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
-  (global-auto-revert-mode 1)
 
   (column-number-mode)
   (global-display-line-numbers-mode t)
   (setq display-line-numbers 'relative)
-  (setq global-auto-revert-non-file-buffers t)
 
   ;; Disable line numbers for some modes
   (dolist (mode '(org-mode-hook
@@ -90,6 +83,35 @@
   (set-face-attribute 'variable-pitch nil :font jef/variable-font-face :height jef/default-font-size)
   (set-face-attribute 'mode-line nil :family jef/mode-line-font-face :height jef/default-font-size)
   (set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size)
+#+end_src
+
+* Basic Emacs Configuration
+** Backup
+
+#+begin_src emacs-lisp
+(setq
+   backup-by-copying t
+   backup-directory-alist '(("." . "~/.saves/"))
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)
+#+end_src
+
+** Recent Files
+
+#+begin_src emacs-lisp
+  (recentf-mode 1)       ; Enable recent file mode
+  (savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
+  (global-auto-revert-mode 1)
+  (setq global-auto-revert-non-file-buffers t)
+#+end_src
+
+** Custom File
+
+#+begin_src emacs-lisp
+  (setq custom-file "~/.config/emacs/custom.el")
+  (load custom-file 'noerror 'nomessage)
 #+end_src
 
 * Package Configuration
@@ -339,7 +361,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
     "ts" '(hydra-text-scale/body :which-key "scale text"))
 
-  (defhydra hydra-change-windows
+  (defhydra hydra-change-windows (:timeout 2)
     "moves between windows"
     ("h" evil-window-left "left")
     ("j" evil-window-down "down")

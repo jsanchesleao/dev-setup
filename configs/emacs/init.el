@@ -25,6 +25,7 @@
 
 (setq inhibit-startup-message t)
 (setq visible-bell t) 
+(setq initial-scratch-message nil)
 (setq-default tab-size 2)
 
 (setq custom-file "~/.config/emacs/custom.el")
@@ -255,6 +256,28 @@
 
 (jef/leader-keys
   "ts" '(hydra-text-scale/body :which-key "scale text"))
+
+(defhydra hydra-change-windows
+  "moves between windows"
+  ("h" evil-window-left "left")
+  ("j" evil-window-down "down")
+  ("k" evil-window-up "up")
+  ("l" evil-window-right "right")
+  ("q" nil "quit" :exit t))
+
+(use-package switch-window
+:after general
+:config
+
+  (jef/leader-keys
+  "w" '(:ignore t :which-key "window")
+  "ww" '(switch-window :which-key "switch window")
+  "wh" '(switch-window-then-split-vertically :which-key "spit horizontally")
+  "wv" '(switch-window-then-split-horizontally :which-key "split vertically")
+  "wf" '(switch-window-then-find-file :which-key "switch and find file")
+  "wd" '(switch-window-then-dired :which-key "switch and dired")
+  "wb" '(switch-window-then-display-buffer :which-key "switch and open buffer")
+  "ws" '(switch-window-then-swap-buffer :which-key "swap buffers")))
 
 (use-package vterm)
 
