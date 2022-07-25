@@ -20,6 +20,7 @@
 (defvar jef/monospace-font-face "MesloLGS NF")
 (defvar jef/variable-font-face "Roboto")
 (defvar jef/mode-line-font-face "Roboto")
+(defvar jef/dotfiles-directory (expand-file-name "~/personal/dev-setup"))
 #+end_src
 
 ** Linux/Chromebook
@@ -29,6 +30,7 @@
     (setq jef/default-font-size 120)
     (setq jef/monospace-font-face "MesloLGS\ NF")
     (setq jef/variable-font-face "Roboto")
+    (setq jef/dotfiles-directory (expand-file-name "~/projects/dev-setup"))
     (setq jef/mode-line-font-face "Noto Sans"))
 #+end_src
 
@@ -135,7 +137,7 @@
   (setq use-package-always-ensure t)
 
   (use-package emacs
-    :custom ((tab-width 4))
+    :custom ((tab-width 4)))
 #+end_src
 
 ** Try
@@ -681,7 +683,7 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 #+begin_src emacs-lisp
   (defun jef/org-babel-tangle-config ()
     (when (string-equal (buffer-file-name)
-                        (expand-file-name "~/.config/emacs/EmacsConfig.org"))
+                        (concat jef/dotfiles-directory "/configs/emacs/EmacsConfig.org"))
       (let ((org-confirm-babel-evaluate nil))
         (org-babel-tangle))))
 
