@@ -43,16 +43,42 @@
     (setq insert-directory-program "/usr/local/opt/coreutils/libexec/gnubin/ls"))
 #+end_src
 
+* Basic Emacs Configuration
+** Backup
+
+#+begin_src emacs-lisp
+(setq
+   backup-by-copying t
+   backup-directory-alist '(("." . "~/.saves/"))
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t)
+#+end_src
+
+** Recent Files
+
+#+begin_src emacs-lisp
+  (recentf-mode 1)       ; Enable recent file mode
+  (savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
+  (global-auto-revert-mode 1)
+  (setq global-auto-revert-non-file-buffers t)
+#+end_src
+
+** Custom File
+
+#+begin_src emacs-lisp
+  (setq custom-file "~/.config/emacs/custom.el")
+  (load custom-file 'noerror 'nomessage)
+#+end_src
 * Basic UI Configuration
 ** Ui Elements
 
 #+begin_src emacs-lisp 
 
-
   (setq inhibit-startup-message t)
   (setq visible-bell t) 
   (setq initial-scratch-message nil)
-  (setq-default tab-size 2)
 
   (scroll-bar-mode -1)   ; Disable visible scrollbar
   (tool-bar-mode -1)     ; Disable the toolbar
@@ -85,35 +111,6 @@
   (set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size)
 #+end_src
 
-* Basic Emacs Configuration
-** Backup
-
-#+begin_src emacs-lisp
-(setq
-   backup-by-copying t
-   backup-directory-alist '(("." . "~/.saves/"))
-   delete-old-versions t
-   kept-new-versions 6
-   kept-old-versions 2
-   version-control t)
-#+end_src
-
-** Recent Files
-
-#+begin_src emacs-lisp
-  (recentf-mode 1)       ; Enable recent file mode
-  (savehist-mode 1)      ; Enabe M-x history nav with M-n and M-p
-  (global-auto-revert-mode 1)
-  (setq global-auto-revert-non-file-buffers t)
-#+end_src
-
-** Custom File
-
-#+begin_src emacs-lisp
-  (setq custom-file "~/.config/emacs/custom.el")
-  (load custom-file 'noerror 'nomessage)
-#+end_src
-
 * Package Configuration
 ** Use Package
 
@@ -136,6 +133,9 @@
 
   (require 'use-package)
   (setq use-package-always-ensure t)
+
+  (use-package emacs
+    :custom ((tab-width 4))
 #+end_src
 
 ** Try
@@ -275,6 +275,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     :ensure t
     :after evil
     :diminish
+    :custom ((undo-tree-history-directory-alist '(("." . "~/.undos/"))))
     :config
     (evil-set-undo-system 'undo-tree)
     (global-undo-tree-mode 1))
@@ -366,12 +367,18 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
     "ts" '(hydra-text-scale/body :which-key "scale text"))
 
-  (defhydra hydra-change-windows (:timeout 2)
-    "moves between windows"
+  (defhydra hydra-change-windows (:timeout nil)
+    "window operations"
     ("h" evil-window-left "left")
     ("j" evil-window-down "down")
     ("k" evil-window-up "up")
     ("l" evil-window-right "right")
+    ("H" evil-window-decrease-width "decrease width")
+    ("J" evil-window-increase-height "increase height")
+    ("K" evil-window-decrease-height "decrease-height")
+    ("L" evil-window-increase-width "increase width")
+    ("-" evil-window-split "horizontal split")
+    ("|" evil-window-vsplit "vertical split")
     ("q" nil "quit" :exit t))
 
   (jef/leader-keys
@@ -465,31 +472,34 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 *** LSP Mode
 
 #+begin_src emacs-lisp
-      (defun jef/lsp-mode-setup ()
-        (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
-        (lsp-headerline-breadcrumb-mode))
+  (defun jef/lsp-mode-setup ()
+    (setq lsp-headerline-breadcrumb-segments '(path-up-to-project file symbols))
+    (lsp-headerline-breadcrumb-mode))
 
-      (use-package lsp-mode
-        :commands (lsp lsp-deferred)
-        :hook (lsp-mode . jef/lsp-mode-setup)
-        :init
-        (setq lsp-keymap-prefix "C-c l")
-        :config
-        (lsp-enable-which-key-integration t)
-        (setq read-process-output-max (* 4 1024 1024))
-        (setq gc-cons-threshold 100000000))
+  (use-package lsp-mode
+    :commands (lsp lsp-deferred)
+    :hook (lsp-mode . jef/lsp-mode-setup)
+    :init
+    (setq lsp-keymap-prefix "C-c l")
+    :config
+    (lsp-enable-which-key-integration t)
+    (add-to-list 'lsp-file-watch-ignored-directories "\\.jest-cache\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "__snapshots__\\'")
+    (setq read-process-output-max (* 4 1024 1024))
+    (setq lsp-file-watch-threshold 3000)
+    (setq gc-cons-threshold 100000000))
 
-      (use-package lsp-ui
-        :hook (lsp-mode . lsp-ui-mode)
-        :custom
-        (lsp-ui-doc-position 'bottom)
-        (lsp-ui-peek-show-directory nil)
-        :config
-        (jef/leader-keys
-          "tr" '(lsp-ui-peek-find-references :which-key "Find References")
-          "td" '(lsp-ui-peek-find-definitions :which-key "Find Definitions")))
+  (use-package lsp-ui
+    :hook (lsp-mode . lsp-ui-mode)
+    :custom
+    (lsp-ui-doc-position 'bottom)
+    (lsp-ui-peek-show-directory nil)
+    :config
+    (jef/leader-keys
+      "tr" '(lsp-ui-peek-find-references :which-key "Find References")
+      "td" '(lsp-ui-peek-find-definitions :which-key "Find Definitions")))
 
-      (use-package lsp-ivy)
+  (use-package lsp-ivy)
 #+end_src
 
 *** Company
@@ -533,6 +543,7 @@ You have to install =theia ide= language server for this to work properly. Instr
     :after tree-sitter
     :hook (typescript-mode . lsp-deferred)
     :config
+    (indent-tabs-mode 0)
     (setq typescript-indent-level 2))
 
   (define-derived-mode typescriptreact-mode typescript-mode "Typescript TSX")
@@ -549,6 +560,13 @@ You have to install =theia ide= language server for this to work properly. Instr
 
   (add-to-list 'auto-mode-alist '("\\.js\\'" . js2-mode))
   (add-to-list 'tree-sitter-major-mode-language-alist '(js2-mode . js))
+#+end_src
+
+*** Graphql
+
+#+begin_src emacs-lisp
+  (use-package graphql-mode
+    :mode "\\.graphql\\'") 
 #+end_src
 
 *** Go
