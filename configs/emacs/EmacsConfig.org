@@ -216,45 +216,46 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 ** Evil
 
 #+begin_src emacs-lisp
-(defun jef/evil-hook ()
-  (dolist (mode '(custom-mode
-		  eshell-mode
-		  term-mode))
-    (add-to-list 'evil-emacs-state-modes mode)))
+  (defun jef/evil-hook ()
+    (dolist (mode '(custom-mode
+                    eshell-mode
+                    vterm-mode
+                    term-mode))
+      (add-to-list 'evil-emacs-state-modes mode)))
 
-(use-package evil
-  :ensure t
-  :init
-  (setq evil-want-integration t)
-  (setq evil-want-keybinding nil)
-  (setq evil-want-C-u-scroll nil)
-  (setq evil-want-C-i-jump nil)
-  :hook (evil-mode . jef/evil-hook)
-  :config
-  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
-  (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
-  (define-key evil-normal-state-map (kbd ";") 'evil-ex)
+  (use-package evil
+    :ensure t
+    :init
+    (setq evil-want-integration t)
+    (setq evil-want-keybinding nil)
+    (setq evil-want-C-u-scroll nil)
+    (setq evil-want-C-i-jump nil)
+    :hook (evil-mode . jef/evil-hook)
+    :config
+    (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
+    (define-key evil-insert-state-map (kbd "C-h") 'evil-delete-backward-char-and-join)
+    (define-key evil-normal-state-map (kbd ";") 'evil-ex)
 
-  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
-  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
+    (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+    (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
 
-  (evil-set-initial-state 'messages-buffer-mode 'normal)
-  (evil-set-initial-state 'dashboard-mode 'normal))
+    (evil-set-initial-state 'messages-buffer-mode 'normal)
+    (evil-set-initial-state 'dashboard-mode 'normal))
 
-(evil-mode 1)
+  (evil-mode 1)
 
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+  (use-package evil-collection
+    :after evil
+    :config
+    (evil-collection-init))
 
-(use-package undo-tree
-  :ensure t
-  :after evil
-  :diminish
-  :config
-  (evil-set-undo-system 'undo-tree)
-  (global-undo-tree-mode 1))
+  (use-package undo-tree
+    :ensure t
+    :after evil
+    :diminish
+    :config
+    (evil-set-undo-system 'undo-tree)
+    (global-undo-tree-mode 1))
 
 #+end_src
 
@@ -308,6 +309,10 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
      "gf" '(magit-pull :which-key "pull")
      "gi" '(magit-pull :which-key "init")
      "gc" '(magit-commit :which-key "commit")
+     "h"  '(evil-window-left :which-key "left window")
+     "j"  '(evil-window-down :which-key "down window")
+     "k"  '(evil-window-up :which-key "up window")
+     "l"  '(evil-window-right :which-key "right window")
      "a" '(:ignore t :which-key "agenda")
      "aa" '(org-agenda :which-key "Open Agenda")
      "at" '(counsel-org-tag :which-key "Add Tag")
@@ -339,13 +344,25 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
     "ts" '(hydra-text-scale/body :which-key "scale text"))
 
-  (defhydra hydra-change-windows
+  (defhydra hydra-change-windows (:timeout 5)
     "moves between windows"
     ("h" evil-window-left "left")
     ("j" evil-window-down "down")
     ("k" evil-window-up "up")
     ("l" evil-window-right "right")
     ("q" nil "quit" :exit t))
+
+  (jef/leader-keys
+    "tw" '(hydra-change-windows/body :which-key "change window"))
+
+  (defhydra hydra-scroll (:timeout 5)
+    "scrolls the text in the current window"
+    ("k" (lambda () (interactive) (evil-scroll-up 5)) "scroll up")
+    ("j" (lambda () (interactive) (evil-scroll-down 5)) "scroll down")
+    ("q" nil "quit" :exit t))
+
+  (jef/leader-keys
+    "ty" '(hydra-scroll/body :which-key "scroll"))
 #+end_src
 
 ** Switch Window
@@ -371,6 +388,15 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 
 #+begin_src emacs-lisp
 (use-package vterm)
+#+end_src
+
+** Dimmer
+
+#+begin_src emacs-lisp
+  (use-package dimmer
+    :custom ((dimmer-fraction 0.3))
+    :config
+    (dimmer-mode t))
 #+end_src
 
 * Development
@@ -428,7 +454,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
         (setq lsp-keymap-prefix "C-c l")
         :config
         (lsp-enable-which-key-integration t)
-        (setq read-process-output-max (* 1024 1024))
+        (setq read-process-output-max (* 4 1024 1024))
         (setq gc-cons-threshold 100000000))
 
       (use-package lsp-ui
@@ -511,7 +537,7 @@ You should have the go LSP server installed. You can find instructions [[https:/
   :mode "\\.go\\'"
   :hook (go-mode . lsp-deferred))
 
-(add-hook 'go-mode (lambda () (setq-default tab-width 4)))
+(add-hook 'go-mode (lambda () (setq-local tab-width 4)))
 #+end_src
 
 *** Rust
