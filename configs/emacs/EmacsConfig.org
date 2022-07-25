@@ -366,11 +366,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
   (jef/leader-keys
     "ts" '(hydra-text-scale/body :which-key "scale text"))
 
-<<<<<<< HEAD
-  (defhydra hydra-change-windows (:timeout 5)
-=======
   (defhydra hydra-change-windows (:timeout 2)
->>>>>>> 2bddd56e30739df647cad2b3486338a91d1c8908
     "moves between windows"
     ("h" evil-window-left "left")
     ("j" evil-window-down "down")
