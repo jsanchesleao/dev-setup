@@ -73,6 +73,7 @@
   (setq custom-file "~/.config/emacs/custom.el")
   (load custom-file 'noerror 'nomessage)
 #+end_src
+
 * Basic UI Configuration
 ** Ui Elements
 
@@ -290,7 +291,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 #+begin_src emacs-lisp
   (defun jef/load-emacs-config ()
     (interactive)
-    (find-file "~/.config/emacs/EmacsConfig.org"))
+    (find-file (concat jef/dotfiles-directory "/configs/emacs/EmacsConfig.org")))
 
   (defun jef/load-tasks-file ()
     (interactive)
@@ -379,9 +380,11 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     ("J" evil-window-increase-height "increase height")
     ("K" evil-window-decrease-height "decrease-height")
     ("L" evil-window-increase-width "increase width")
+    ("d" evil-window-delete "close window")
     ("-" evil-window-split "horizontal split")
     ("|" evil-window-vsplit "vertical split")
-    ("q" nil "quit" :exit t))
+    ("q" nil "quit" :exit t)
+    ("<enter>" nil "quit" :exit t))
 
   (jef/leader-keys
     "tw" '(hydra-change-windows/body :which-key "change window"))
@@ -784,24 +787,31 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 
 #+begin_src emacs-lisp
   (setq org-capture-templates
-	`(("t" "Tasks / Projects")
-	  ("tt" "Task" entry (file+olp "~/personal/OrgDatabase/Tasks.org" "Inbox") "* TODO %?\n %U\n %a\n %i" :empty-lines 1)
+  `(("t" "Tasks / Projects")
+    ("tt" "Task" entry (file+olp "~/personal/OrgDatabase/Tasks.org" "Inbox") "* TODO %?\n %U\n %a\n %i" :empty-lines 1)
 
-	  ("j" "Journal Entries")
-	  ("jj" "Journal" entry
-	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
-	   "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
-	   :clock-in :clock-resume
-	   :empty-lines 1)
-	  ("jm" "Meeting" entry
-	   (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
-	   "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
-	   :clock-in :clock-resume
-	   :empty-lines 1)
-	  ("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
-	   "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
-  
-  (jef/org-font-setup))
+    ("j" "Journal Entries")
+    ("jj" "Journal" entry
+     (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+     "\n* %<%I:%M %p> - Journal :journal:\n\n%?\n\n"
+     :clock-in :clock-resume
+     :empty-lines 1)
+    ("jm" "Meeting" entry
+     (file+olp+datetree "~/personal/OrgDatabase/Journal.org")
+     "* %<%I:%M %p> - %a :meetings:\n\n%?\n\n"
+     :clock-in :clock-resume
+     :empty-lines 1)
+
+    ("d" "Org Drill")
+    ("dw" "Wortschatz" entry
+     (file+olp "~/personal/OrgDatabase/Wortschatz.org" "Wortschatz")
+     "*"
+     )
+
+    ("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
+     "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
+
+  (jef/org-font-setup)
 #+end_src
 
 ** Bullets
@@ -837,6 +847,12 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 (add-to-list 'org-structure-template-alist '("py" . "src python"))
 #+end_src
 
+** Org Drill
+
+#+begin_src emacs-lisp
+(use-package org-drill)
+#+end_src
+
 * File Management
 ** Dired
 
@@ -866,5 +882,53 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
     :config
     (evil-collection-define-key 'normal 'dired-mode-map
       "H" 'dired-hide-dotfiles-mode))
+#+end_src
+
+* Personal Customizations
+** Run On VTerm
+I still have to edit this to create a vterm buffer if none exists
+#+begin_src emacs-lisp
+(defun run-on-vterm (command)
+	(interactive "Mvterm$ ")
+		(with-current-buffer "*vterm*"
+		(vterm-send-C-c)
+		(vterm-insert command)
+		(vterm-send-return)))
+
+(jef/leader-keys "ss" 'run-on-vterm)
+#+end_src
+
+
+** Wortschatz
+
+#+begin_src emacs-lisp
+(defun wortschatz-add (thema de pt)
+	(interactive "MThema: 
+MAuf Deutsch: 
+MAuf Portugiesisch: ")
+
+		(let ((org-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org")))
+
+		(with-current-buffer (or
+														(get-file-buffer org-file)
+														(find-file-noselect org-file))
+			(save-excursion
+				(goto-line (point-max))
+				(insert "** " thema " :drill:\n")
+				(insert "   :PROPERTIES:\n")
+				(insert "   :DRILL_CARD_TYPE: twosided\n")
+				(insert "   :END:\n")
+				(insert "*** Deutsch\n")
+				(insert "    " de "\n\n")
+				(insert "*** Portugiesisch\n")
+				(insert "    " pt "\n"))
+
+			(save-buffer))))
+
+(let* ((wortschatz-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org"))
+			 (org-drill-scope (list wortschatz-file) )
+			 ) 
+
+  (org-drill))
 #+end_src
 
