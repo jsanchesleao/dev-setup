@@ -898,7 +898,6 @@ I still have to edit this to create a vterm buffer if none exists
 (jef/leader-keys "ss" 'run-on-vterm)
 #+end_src
 
-
 ** Wortschatz
 
 #+begin_src emacs-lisp
@@ -925,10 +924,10 @@ MAuf Portugiesisch: ")
 
 			(save-buffer))))
 
-(let* ((wortschatz-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org"))
-			 (org-drill-scope (list wortschatz-file) )
-			 ) 
-
-  (org-drill))
+(defun wortschatz-test ()
+    (interactive)
+    (let* ((wortschatz-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org"))
+        (org-drill-scope (list wortschatz-file) )) 
+    (org-drill)))
 #+end_src
 
