@@ -700,6 +700,7 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 (use-package org
   :hook (org-mode . jef/org-mode-setup)
   :config
+  (jef/org-font-setup)
   (setq org-ellipsis " ▾")
   (setq org-agenda-start-with-log-mode t)
   (setq org-log-done 'time)
@@ -779,7 +780,7 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 		   (org-agenda-files org-agenda-files)))
 	    (todo "CANC"
 		  ((org-agenda-overriding-header "Cancelled Projects")
-		   (org-agenda-files org-agenda-files)))))))
+		   (org-agenda-files org-agenda-files))))))))
 
 #+end_src
 
@@ -810,8 +811,6 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 
     ("e" "Expenses" table-line (file+headline "~/personal/OrgDatabase/Expenses.org" "Current")
      "| %U | %^{Item} | %^{Value} |" :kill-buffer t)))
-
-  (jef/org-font-setup)
 #+end_src
 
 ** Bullets
