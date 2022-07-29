@@ -931,3 +931,15 @@ MAuf Portugiesisch: ")
     (org-drill)))
 #+end_src
 
+** Scratch
+
+#+begin_src emacs-lisp
+(defun create-scratch-buffer nil
+       "create a scratch buffer"
+       (interactive)
+       (switch-to-buffer (get-buffer-create "*scratch*"))
+       (lisp-interaction-mode)) 
+#+end_src
+
+
+
