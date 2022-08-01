@@ -74,6 +74,33 @@
   (load custom-file 'noerror 'nomessage)
 #+end_src
 
+** IBuffer
+
+#+begin_src emacs-lisp
+  (setq ibuffer-saved-filter-groups
+        '(("home"
+           ("emacs-config" (filename . ".config/emacs"))
+           ("grammatic" (filename . "grammatic"))
+           ("org" (filename . "OrgDatabase"))
+           ("shell" (mode . shell-script-mode))
+
+           ("pwa" (filename . "webmobile-pwa"))
+           ("bos" (filename . "webmobile-bos"))
+
+           ("emacs" (or
+                     (name . "^\\*scratch\\*$")
+                     (name . "ˆ\\*Messages\\*$"))))))
+
+  (add-hook 'ibuffer-mode-hook
+            '(lambda ()
+               (ibuffer-auto-mode 1)
+               (ibuffer-switch-to-saved-filter-groups "home")))
+
+  (setq ibuffer-expert t)
+  (setq ibuffer-show-empty-filter-groups nil)
+
+#+end_src
+
 * Basic UI Configuration
 ** Ui Elements
 
@@ -107,11 +134,19 @@
 ** Font Configuration
 
 #+begin_src emacs-lisp 
-  (set-face-attribute 'default nil :font jef/monospace-font-face :height jef/default-font-size)
-  (set-face-attribute 'fixed-pitch nil :font jef/monospace-font-face :height jef/default-font-size)
-  (set-face-attribute 'variable-pitch nil :font jef/variable-font-face :height jef/default-font-size)
-  (set-face-attribute 'mode-line nil :family jef/mode-line-font-face :height jef/default-font-size)
-  (set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size)
+  (defun jef/set-font-faces ()
+      (set-face-attribute 'default nil :font jef/monospace-font-face :height jef/default-font-size)
+      (set-face-attribute 'fixed-pitch nil :font jef/monospace-font-face :height jef/default-font-size)
+      (set-face-attribute 'variable-pitch nil :font jef/variable-font-face :height jef/default-font-size)
+      (set-face-attribute 'mode-line nil :family jef/mode-line-font-face :height jef/default-font-size)
+      (set-face-attribute 'mode-line-inactive nil :family jef/mode-line-font-face :height jef/default-font-size))
+
+  (if (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (with-selected-frame frame
+                    (jef/set-font-faces))))
+    (jef/set-font-faces))
 #+end_src
 
 * Package Configuration
@@ -383,6 +418,8 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
     ("d" evil-window-delete "close window")
     ("-" evil-window-split "horizontal split")
     ("|" evil-window-vsplit "vertical split")
+    ("n" next-buffer "next buffer")
+    ("p" previous-buffer "previous buffer")
     ("q" nil "quit" :exit t)
     ("<enter>" nil "quit" :exit t))
 
@@ -408,7 +445,7 @@ First time this config is loaded on a new machine, run the command =M-x all-the-
 
     (jef/leader-keys
     "w" '(:ignore t :which-key "window")
-    "ww" '(switch-window :which-key "switch window")
+    "ww" '(ace-window :which-key "switch window")
     "wh" '(switch-window-then-split-vertically :which-key "spit horizontally")
     "wv" '(switch-window-then-split-horizontally :which-key "split vertically")
     "wf" '(switch-window-then-find-file :which-key "switch and find file")
@@ -659,27 +696,34 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 
 ** Fonts
 #+begin_src emacs-lisp
-(defun jef/org-font-setup ()
+  (defun jef/org-font-setup ()
 
-  (dolist (face '((org-level-1 . 1.2)
-  		(org-level-2 . 1.1)
-  		(org-level-3 . 1.05)
-  		(org-level-4 . 1.0)
-  		(org-level-5 . 1.1)
-  		(org-level-6 . 1.1)
-  		(org-level-7 . 1.1)
-  		(org-level-8 . 1.1)))
-    (set-face-attribute (car face) nil :font "MesloLGS NF" :weight 'regular :height (cdr face)))
-  
-  ;; Ensure that anything that should be fixed-pitch in Org files appears that way
-    (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
-    (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-date nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
-    (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
-    (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+    (dolist (face '((org-level-1 . 1.2)
+          (org-level-2 . 1.1)
+          (org-level-3 . 1.05)
+          (org-level-4 . 1.0)
+          (org-level-5 . 1.1)
+          (org-level-6 . 1.1)
+          (org-level-7 . 1.1)
+          (org-level-8 . 1.1)))
+      (set-face-attribute (car face) nil :font "MesloLGS NF" :weight 'regular :height (cdr face)))
+
+    ;; Ensure that anything that should be fixed-pitch in Org files appears that way
+      (set-face-attribute 'org-block nil :foreground nil :inherit 'fixed-pitch)
+      (set-face-attribute 'org-code nil   :inherit '(shadow fixed-pitch))
+      (set-face-attribute 'org-date nil   :inherit '(shadow fixed-pitch))
+      (set-face-attribute 'org-table nil   :inherit '(shadow fixed-pitch))
+      (set-face-attribute 'org-verbatim nil :inherit '(shadow fixed-pitch))
+      (set-face-attribute 'org-special-keyword nil :inherit '(font-lock-comment-face fixed-pitch))
+      (set-face-attribute 'org-meta-line nil :inherit '(font-lock-comment-face fixed-pitch))
+      (set-face-attribute 'org-checkbox nil :inherit 'fixed-pitch))
+
+  (when (daemonp)
+      (add-hook 'after-make-frame-functions
+                (lambda (frame)
+                  (with-selected-frame frame
+                    (jef/org-font-setup)))))
+
 #+end_src
 
 ** Auto-tangle Configuration Files
@@ -942,3 +986,21 @@ MAuf Portugiesisch: ")
 
 
 
+** Yarn run
+
+#+begin_src emacs-lisp
+(defun yarn-run ()
+  (interactive)
+
+  (let* (
+		 (dirname (or (projectile-project-root)
+					  (read-directory-name "Root project directory: ")))
+        (default-directory dirname)
+		 (package-json (message (concat dirname "package.json" ) ))
+		 (json (json-read-file package-json))
+		 (scripts (mapcar
+				   (lambda (pair) (symbol-name (car pair)))
+				   (cdr (assoc 'scripts json))))
+		 (command (completing-read "yarn " scripts)))
+	(shell-command (concat "yarn " command " &"))))
+#+end_src
