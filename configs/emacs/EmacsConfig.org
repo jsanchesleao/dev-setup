@@ -27,7 +27,7 @@
 
 #+begin_src emacs-lisp
   (when jef/is-linux
-    (setq jef/default-font-size 120)
+    (setq jef/default-font-size 100)
     (setq jef/monospace-font-face "MesloLGS\ NF")
     (setq jef/variable-font-face "Roboto")
     (setq jef/dotfiles-directory (expand-file-name "~/projects/dev-setup"))
