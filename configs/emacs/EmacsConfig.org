@@ -617,6 +617,10 @@ You should have the go LSP server installed. You can find instructions [[https:/
 #+begin_src emacs-lisp
 (use-package go-mode
   :mode "\\.go\\'"
+  :bind (
+  ("C-c C-t" . jef/go-test-saved-dir)
+  ("C-c M-t" . jef/go-save-test-dir)
+  ("C-c C-M-T" . jef/go-remove-saved-test-dir))
   :hook (go-mode . lsp-deferred))
 
 (add-hook 'go-mode (lambda () (setq-local tab-width 4)))
@@ -984,8 +988,6 @@ MAuf Portugiesisch: ")
        (lisp-interaction-mode)) 
 #+end_src
 
-
-
 ** Yarn run
 
 #+begin_src emacs-lisp
@@ -1004,3 +1006,32 @@ MAuf Portugiesisch: ")
 		 (command (completing-read "yarn " scripts)))
 	(shell-command (concat "yarn " command " &"))))
 #+end_src
+
+** Go test
+
+#+begin_src emacs-lisp
+(defvar jef/go-test-saved-dir-value nil
+  "if this is set to a string, the command go-test will use this as
+the package to be tested, so the command can be fired faster")
+
+(defun jef/go-test-saved-dir ()
+  (interactive)
+  (let* ((dirname (or (projectile-project-root)
+					  (read-directory-name "Root project directory: ")))
+		 (testdir (or jef/go-test-saved-dir-value
+				      (read-directory-name "Which directory to test? " dirname)))
+		 (default-directory testdir))
+	(shell-command "go test &")))
+
+(defun jef/go-save-test-dir ()
+  (interactive)
+  (let* ((dirname (or (projectile-project-root)
+					  (read-directory-name "Root project directory: ")))
+		 (testdir (read-directory-name "Which directory to test? " dirname)))
+	(setq jef/go-test-saved-dir-value testdir)))
+
+(defun jef/go-remove-saved-test-dir ()
+  (interactive)
+  (setq jef/go-test-saved-dir-value nil))
+#+end_src
+
