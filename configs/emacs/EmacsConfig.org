@@ -935,76 +935,74 @@ You'll need =Rust Analyzer= to run this correctly. Instructions [[https://github
 ** Run On VTerm
 I still have to edit this to create a vterm buffer if none exists
 #+begin_src emacs-lisp
-(defun run-on-vterm (command)
-	(interactive "Mvterm$ ")
-		(with-current-buffer "*vterm*"
-		(vterm-send-C-c)
-		(vterm-insert command)
-		(vterm-send-return)))
+  (defun run-on-vterm (command)
+    (interactive "Mvterm$ ")
+      (with-current-buffer "*vterm*"
+        (vterm-send-C-c)
+        (vterm-insert command)
+        (vterm-send-return)))
 
-(jef/leader-keys "ss" 'run-on-vterm)
+  (jef/leader-keys "ss" 'run-on-vterm)
 #+end_src
 
 ** Wortschatz
 
 #+begin_src emacs-lisp
-(defun wortschatz-add (thema de pt)
-	(interactive "MThema: 
-MAuf Deutsch: 
-MAuf Portugiesisch: ")
+  (defun wortschatz-add (thema de pt)
+      (interactive "MThema: 
+  MAuf Deutsch: 
+  MAuf Portugiesisch: ")
 
-		(let ((org-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org")))
+    (let ((org-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org")))
+    (with-current-buffer (or (get-file-buffer org-file)
+                               (find-file-noselect org-file))
+      (save-excursion
+        (goto-line (point-max))
+        (insert "** " thema " :drill:\n")
+        (insert "   :PROPERTIES:\n")
+        (insert "   :DRILL_CARD_TYPE: twosided\n")
+        (insert "   :END:\n")
+        (insert "*** Deutsch\n")
+        (insert "    " de "\n\n")
+        (insert "*** Portugiesisch\n")
+        (insert "    " pt "\n"))
+        (save-buffer))))
 
-		(with-current-buffer (or
-														(get-file-buffer org-file)
-														(find-file-noselect org-file))
-			(save-excursion
-				(goto-line (point-max))
-				(insert "** " thema " :drill:\n")
-				(insert "   :PROPERTIES:\n")
-				(insert "   :DRILL_CARD_TYPE: twosided\n")
-				(insert "   :END:\n")
-				(insert "*** Deutsch\n")
-				(insert "    " de "\n\n")
-				(insert "*** Portugiesisch\n")
-				(insert "    " pt "\n"))
-
-			(save-buffer))))
-
-(defun wortschatz-test ()
+  (defun wortschatz-test ()
     (interactive)
     (let* ((wortschatz-file (expand-file-name "~/personal/OrgDatabase/German/Wortschatz.org"))
-        (org-drill-scope (list wortschatz-file) )) 
-    (org-drill)))
+           (org-drill-scope (list wortschatz-file) )) 
+      (org-drill)))
 #+end_src
 
 ** Scratch
 
 #+begin_src emacs-lisp
-(defun create-scratch-buffer nil
-       "create a scratch buffer"
-       (interactive)
-       (switch-to-buffer (get-buffer-create "*scratch*"))
-       (lisp-interaction-mode)) 
+  (defun create-scratch-buffer nil
+    "create a scratch buffer"
+    (interactive)
+    (switch-to-buffer (get-buffer-create "*scratch*"))
+    (lisp-interaction-mode)) 
 #+end_src
 
 ** Yarn run
 
 #+begin_src emacs-lisp
-(defun yarn-run ()
-  (interactive)
+  (defun yarn-run ()
+    (interactive)
 
-  (let* (
-		 (dirname (or (projectile-project-root)
-					  (read-directory-name "Root project directory: ")))
-        (default-directory dirname)
-		 (package-json (message (concat dirname "package.json" ) ))
-		 (json (json-read-file package-json))
-		 (scripts (mapcar
-				   (lambda (pair) (symbol-name (car pair)))
-				   (cdr (assoc 'scripts json))))
-		 (command (completing-read "yarn " scripts)))
-	(shell-command (concat "yarn " command " &"))))
+    (let* ((dirname (or (projectile-project-root)
+                        (read-directory-name "Root project directory: ")))
+           (default-directory dirname)
+           (package-json (message (concat dirname "package.json" ) ))
+           (json (json-read-file package-json))
+           (scripts
+            (mapcar
+             (lambda (pair)
+               (symbol-name (car pair)))
+             (cdr (assoc 'scripts json))))
+           (command (completing-read "yarn " scripts)))
+      (shell-command (concat "yarn " command " &"))))
 #+end_src
 
 ** Go test
